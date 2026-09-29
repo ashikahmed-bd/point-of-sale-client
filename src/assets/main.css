@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+@theme {
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #0ea5e9;
+
+  --color-body: #0f172b;
+  --color-heading: #0f172a;
+  --color-border: #e2e8f0;
+  --color-surface: #e5e5e5; /* f8fafc */
+  --color-muted: #f8fafc;
+
+  --font-sans: 'Inter', sans-serif;
+
+  --text-2xs: 0.6875rem;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
+  dialog {
+    margin: auto;
+  }
+
+  main {
+    @apply space-y-4 px-4 py-4;
+  }
+
+  table {
+    @apply w-full border-separate border-spacing-y-2;
+  }
+
+  thead {
+    @apply bg-gray-50;
+  }
+
+  thead th {
+    @apply px-4 py-3 text-left text-xs font-semibold capitalize;
+  }
+
+  tbody tr {
+    @apply bg-white rounded transition;
+  }
+
+  tbody td {
+    @apply px-4 py-1.5 text-sm text-gray-700;
+  }
+
+  tbody tr td:first-child {
+    @apply rounded-l-lg;
+  }
+
+  tbody tr td:last-child {
+    @apply rounded-r-lg;
+  }
+
+  tbody tr:nth-child(even) {
+    @apply bg-gray-50;
+  }
+}
+
+@layer components {
+  /* Default hidden scrollbar */
+  .scrollbar::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background-color: transparent;
+    transition:
+      width 0.25s ease,
+      height 0.25s ease;
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 211, 243, 0.4);
+    border-radius: 10px;
+    transition: background-color 0.25s ease;
+  }
+
+  /* Hover — show with animation */
+  .scrollbar:hover::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 211, 243, 0.9);
+  }
+
+  .router-link-active,
+  .router-link-exact-active {
+    @apply text-primary font-semibold;
+  }
+
+  .scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 211, 243, 0.9);
+  }
+
+  .base__button {
+    @apply inline-flex items-center gap-2 rounded-lg bg-primary text-white px-3 py-2 text-sm font-medium  transition hover:opacity-90;
+  }
+
+  .form__group {
+    @apply mb-5;
+  }
+
+  .form__header {
+    @apply mb-2 flex items-center justify-between;
+  }
+
+  .form__label {
+    @apply text-sm font-medium text-gray-700;
+  }
+
+  .form__action {
+    @apply cursor-pointer bg-white text-xs font-medium text-body transition-all duration-200;
+    @apply hover:border-primary hover:text-primary;
+  }
+
+  .form__control {
+    @apply w-full rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-body outline-none transition-all duration-200;
+    @apply focus:border-primary focus:ring-2 focus:ring-blue-100;
+  }
+
+  .form__file {
+    @apply w-full rounded border border-gray-300 bg-white text-sm
+           file:mr-3 file:border-0 file:bg-gray-100
+           file:px-4 file:py-2 file:text-gray-700
+           file:font-medium file:cursor-pointer
+           hover:file:opacity-90;
+  }
+
+  .form__select {
+    @apply max-w-full px-2.5 py-1.5 rounded border focus:border-primary focus:outline-none focus:outline-primary disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500;
+  }
+
+  .badge__button {
+    @apply bg-gray-200 px-3 py-1 rounded-full text-sm hover:bg-gray-300;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-gray-200 overflow-hidden;
+  }
+
+  .card__header {
+    @apply flex items-center justify-between px-6 py-4 border-b border-gray-200;
+  }
+
+  .card__title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .card__link {
+    @apply inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/70 focus:outline-none;
+  }
+
+  .card__body {
+    @apply p-6 text-gray-600 overflow-x-auto;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-2 rounded-full border px-3 py-1 capitalize text-xs font-medium;
+  }
+
+  .badge__success {
+    @apply border-green-300 bg-green-50 text-green-700;
+  }
+
+  .badge__warning {
+    @apply border-amber-300 bg-amber-50 text-amber-700;
+  }
+
+  .badge__info {
+    @apply border-blue-300 bg-blue-50 text-blue-700;
+  }
+
+  .badge__danger {
+    @apply border-red-300 bg-red-50 text-red-700;
+  }
+}
