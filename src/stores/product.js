@@ -6,7 +6,6 @@ export const useProductStore = defineStore('product', {
     loading: false,
     errors: {},
     products: [],
-    product: {},
   }),
 
   getters: {},
@@ -15,7 +14,7 @@ export const useProductStore = defineStore('product', {
     async all(page) {
       this.loading = true
       try {
-        const response = await apiClient.get('/api/v1/products', {
+        const response = await apiClient.get('/api/products', {
           params: {
             page: page,
           },
@@ -36,7 +35,7 @@ export const useProductStore = defineStore('product', {
     async store(formData) {
       this.loading = true
       try {
-        const response = await apiClient.post('/api/v1/products', formData, {
+        const response = await apiClient.post('/api/products', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

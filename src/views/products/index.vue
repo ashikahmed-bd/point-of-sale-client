@@ -1,574 +1,498 @@
 <script setup>
 import Default from '@/layouts/Default.vue'
 
-import { computed, ref } from 'vue'
-
-const search = ref('')
-const category = ref('')
-const status = ref('')
-
-const stats = [
-  {
-    label: 'Total Products',
-    value: '248',
-    icon: 'i-lucide-package',
-    bg: 'bg-blue-50',
-    color: 'text-blue-600',
-  },
-  {
-    label: 'Active Products',
-    value: '221',
-    icon: 'i-lucide-circle-check',
-    bg: 'bg-emerald-50',
-    color: 'text-emerald-600',
-  },
-  {
-    label: 'Low Stock',
-    value: '14',
-    icon: 'i-lucide-triangle-alert',
-    bg: 'bg-amber-50',
-    color: 'text-amber-600',
-  },
-  {
-    label: 'Out of Stock',
-    value: '7',
-    icon: 'i-lucide-package-x',
-    bg: 'bg-red-50',
-    color: 'text-red-600',
-  },
-]
-
 const products = [
   {
     id: 1,
-    name: 'Apple MacBook Air M3',
-    brand: 'Apple',
-    sku: 'MBA-M3-256',
-    barcode: '8901234567890',
-    category: 'Electronics',
-    selling_price: 129900,
-    compare_price: 139900,
-    cost_price: 118000,
-    stock: 24,
-    min_stock: 5,
-    max_stock: 50,
-    status: 'active',
-    has_variants: true,
-    variants: 3,
-    image: 'https://images.unsplash.com/photo-1517336714739-489689fd1ca8?w=200',
+    name: 'Real Madrid Home Jersey 2025/26',
+    details: 'Size: S, M, L, XL · Color: White',
+    category: 'Jerseys',
+    brand: 'Adidas',
+    sku: 'RM-2026-H',
+    price: '৳ 5,500',
+    oldPrice: '৳ 6,500',
+    stock: 42,
+    status: 'In Stock',
   },
   {
     id: 2,
-    name: 'Logitech MX Master 3S',
-    brand: 'Logitech',
-    sku: 'LGT-MX3S-BLK',
-    barcode: '8901234567891',
-    category: 'Accessories',
-    selling_price: 8950,
-    compare_price: 9990,
-    cost_price: 7200,
-    stock: 48,
-    min_stock: 10,
-    max_stock: 80,
-    status: 'active',
-    has_variants: true,
-    variants: 2,
-    image: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=200',
+    name: 'Barcelona Home Jersey 2025/26',
+    details: 'Size: S, M, L, XL · Color: Blue',
+    category: 'Jerseys',
+    brand: 'Nike',
+    sku: 'BAR-2026-H',
+    price: '৳ 5,200',
+    oldPrice: '৳ 6,000',
+    stock: 36,
+    status: 'In Stock',
   },
   {
     id: 3,
-    name: 'Samsung 55" Crystal UHD TV',
-    brand: 'Samsung',
-    sku: 'SAM-TV-55CU',
-    barcode: '8901234567892',
-    category: 'Electronics',
-    selling_price: 64900,
-    compare_price: 69900,
-    cost_price: 58000,
-    stock: 8,
-    min_stock: 10,
-    max_stock: 30,
-    status: 'active',
-    has_variants: false,
-    variants: 0,
-    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=200',
+    name: 'Nike T-Shirt (Cotton)',
+    details: 'Size: S, M, L, XL · Color: Black',
+    category: 'T-Shirts',
+    brand: 'Nike',
+    sku: 'NK-TS-001',
+    price: '৳ 1,200',
+    oldPrice: '',
+    stock: 120,
+    status: 'In Stock',
   },
   {
     id: 4,
-    name: 'Premium Laptop Stand',
-    brand: 'Buyzin',
-    sku: 'BZN-LS-001',
-    barcode: '8901234567893',
-    category: 'Accessories',
-    selling_price: 2450,
-    compare_price: null,
-    cost_price: 1700,
-    stock: 63,
-    min_stock: 10,
-    max_stock: 100,
-    status: 'active',
-    has_variants: false,
-    variants: 0,
-    image: 'https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=200',
+    name: 'Adidas Running Shoe',
+    details: 'Size: 40, 41, 42 · Color: White',
+    category: 'Shoes',
+    brand: 'Adidas',
+    sku: 'AD-RUN-001',
+    price: '৳ 6,800',
+    oldPrice: '',
+    stock: 25,
+    status: 'Low Stock',
   },
   {
     id: 5,
-    name: 'Nike Air Max 270',
-    brand: 'Nike',
-    sku: 'NK-AM270-001',
-    barcode: '8901234567894',
-    category: 'Sports',
-    selling_price: 15900,
-    compare_price: 17900,
-    cost_price: 12800,
-    stock: 3,
-    min_stock: 5,
-    max_stock: 40,
-    status: 'active',
-    has_variants: true,
-    variants: 6,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200',
+    name: 'Adidas Football',
+    details: 'Size: 5 · Color: White/Blue',
+    category: 'Accessories',
+    brand: 'Adidas',
+    sku: 'AD-FB-001',
+    price: '৳ 2,100',
+    oldPrice: '',
+    stock: 58,
+    status: 'In Stock',
   },
   {
     id: 6,
-    name: 'Wireless Mechanical Keyboard',
-    brand: 'Keychron',
-    sku: 'KCH-K8-PRO',
-    barcode: '8901234567895',
-    category: 'Accessories',
-    selling_price: 11200,
-    compare_price: 12500,
-    cost_price: 8900,
+    name: 'Nike Sneaker',
+    details: 'Size: 42, 43, 44 · Color: Red',
+    category: 'Shoes',
+    brand: 'Nike',
+    sku: 'NK-SN-001',
+    price: '৳ 11,200',
+    oldPrice: '',
     stock: 0,
-    min_stock: 5,
-    max_stock: 30,
-    status: 'inactive',
-    has_variants: true,
-    variants: 4,
-    image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=200',
+    status: 'Out of Stock',
   },
   {
     id: 7,
-    name: 'Smart LED Desk Lamp',
-    brand: 'Philips',
-    sku: 'PHL-LAMP-001',
-    barcode: '8901234567896',
-    category: 'Home & Living',
-    selling_price: 3250,
-    compare_price: 3800,
-    cost_price: 2400,
-    stock: 18,
-    min_stock: 5,
-    max_stock: 50,
-    status: 'draft',
-    has_variants: false,
-    variants: 0,
-    image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=200',
+    name: 'Headphone',
+    details: 'Color: Black',
+    category: 'Electronics',
+    brand: 'Sony',
+    sku: 'SY-HP-001',
+    price: '৳ 10,500',
+    oldPrice: '৳ 12,000',
+    stock: 42,
+    status: 'In Stock',
   },
   {
     id: 8,
-    name: 'Anker 20W USB-C Charger',
-    brand: 'Anker',
-    sku: 'ANK-20W-PD',
-    barcode: '8901234567897',
+    name: 'Adidas Backpack',
+    details: 'Color: Black',
     category: 'Accessories',
-    selling_price: 1890,
-    compare_price: 2190,
-    cost_price: 1350,
-    stock: 72,
-    min_stock: 15,
-    max_stock: 100,
-    status: 'active',
-    has_variants: false,
-    variants: 0,
-    image: 'https://images.unsplash.com/photo-1609592424875-6c3a3e2d1e7f?w=200',
+    brand: 'Adidas',
+    sku: 'AD-BP-001',
+    price: '৳ 3,800',
+    oldPrice: '',
+    stock: 15,
+    status: 'Low Stock',
+  },
+  {
+    id: 9,
+    name: 'Sports Bottle',
+    details: 'Volume: 750ml · Color: Blue',
+    category: 'Accessories',
+    brand: 'Generic',
+    sku: 'SP-BT-001',
+    price: '৳ 950',
+    oldPrice: '',
+    stock: 64,
+    status: 'In Stock',
+  },
+  {
+    id: 10,
+    name: 'Cricket Bat',
+    details: 'Size: Full · Color: Brown',
+    category: 'Accessories',
+    brand: 'SS',
+    sku: 'SS-CB-001',
+    price: '৳ 8,900',
+    oldPrice: '',
+    stock: 12,
+    status: 'Low Stock',
   },
 ]
 
-const filteredProducts = computed(() => {
-  const query = search.value.toLowerCase().trim()
+const stats = [
+  {
+    title: 'Total Products',
+    value: '1,240',
+    change: '+12%',
+    icon: 'i-lucide-box',
+    class: 'bg-primary/10 text-primary',
+  },
+  {
+    title: 'Low Stock',
+    value: '28',
+    change: '+5%',
+    icon: 'i-lucide-triangle-alert',
+    class: 'bg-orange-50 text-orange-500',
+  },
+  {
+    title: 'Out of Stock',
+    value: '12',
+    change: '+8%',
+    icon: 'i-lucide-circle-x',
+    class: 'bg-red-50 text-red-500',
+  },
+  {
+    title: 'Active Products',
+    value: '1,180',
+    change: '+10%',
+    icon: 'i-lucide-tag',
+    class: 'bg-violet-50 text-violet-500',
+  },
+]
 
-  return products.filter((product) => {
-    const matchesSearch =
-      !query ||
-      product.name.toLowerCase().includes(query) ||
-      product.sku.toLowerCase().includes(query) ||
-      product.barcode?.toLowerCase().includes(query)
+const statusClass = (status) => {
+  if (status === 'In Stock') {
+    return 'bg-emerald-50 text-emerald-600'
+  }
 
-    const matchesCategory = !category.value || product.category === category.value
+  if (status === 'Low Stock') {
+    return 'bg-orange-50 text-orange-600'
+  }
 
-    const matchesStatus = !status.value || product.status === status.value
+  return 'bg-red-50 text-red-600'
+}
 
-    return matchesSearch && matchesCategory && matchesStatus
-  })
-})
+const stockClass = (stock) => {
+  if (!stock) return 'bg-slate-200'
+  if (stock <= 25) return 'bg-orange-500'
+  return 'bg-emerald-500'
+}
+
+const stockWidth = (stock) => {
+  if (!stock) return '0%'
+  return `${Math.min(stock, 100)}%`
+}
 </script>
 
 <template>
   <Default>
     <main class="p-4">
-      <!-- Header -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-lg font-semibold text-slate-900">Products</h1>
-          <p class="mt-0.5 text-xs text-slate-500">Manage your products, inventory and pricing</p>
+      <div class="mx-auto max-w-7xl">
+        <!-- Page Header -->
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <div>
+            <h1 class="text-sm font-semibold text-body">Products</h1>
+
+            <p class="mt-1 text-sm text-body/60">Manage your products, stock, pricing and more.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm text-body transition hover:bg-slate-50"
+            >
+              <UIcon name="i-lucide-upload" class="size-4" />
+
+              Import
+            </button>
+
+            <button
+              type="button"
+              class="flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm text-body transition hover:bg-slate-50"
+            >
+              <UIcon name="i-lucide-download" class="size-4" />
+
+              Export
+            </button>
+
+            <RouterLink
+              :to="{ name: 'products.create' }"
+              class="flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-white transition hover:bg-primary/90"
+            >
+              <UIcon name="i-lucide-plus" class="size-4" />
+
+              Add Product
+            </RouterLink>
+          </div>
         </div>
 
-        <button
-          type="button"
-          class="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-primary/90"
-        >
-          <UIcon name="i-lucide-plus" class="size-4" />
-          Add Product
-        </button>
-      </div>
-
-      <!-- Stats -->
-      <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div
-          v-for="stat in stats"
-          :key="stat.label"
-          class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-xs text-slate-500">
-                {{ stat.label }}
-              </p>
-
-              <p class="mt-1 text-lg font-bold text-slate-900">
-                {{ stat.value }}
-              </p>
+        <!-- Stats -->
+        <div class="mb-3 grid grid-cols-4 gap-3">
+          <div
+            v-for="stat in stats"
+            :key="stat.title"
+            class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3"
+          >
+            <div
+              class="flex size-10 shrink-0 items-center justify-center rounded-lg"
+              :class="stat.class"
+            >
+              <UIcon :name="stat.icon" class="size-5" />
             </div>
 
-            <div class="flex size-8 items-center justify-center rounded-lg" :class="stat.bg">
-              <UIcon :name="stat.icon" class="size-4" :class="stat.color" />
+            <div class="min-w-0">
+              <p class="text-sm text-body/60">
+                {{ stat.title }}
+              </p>
+
+              <div class="mt-0.5 flex items-center gap-2">
+                <span class="text-sm font-semibold text-body">
+                  {{ stat.value }}
+                </span>
+
+                <span class="text-sm font-medium text-emerald-600">
+                  {{ stat.change }}
+                </span>
+              </div>
+
+              <p class="mt-0.5 text-xs text-body/40">vs last month</p>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Products Card -->
-      <section class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <!-- Toolbar -->
-        <div class="border-b border-slate-100 p-3">
-          <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <!-- Search -->
-            <div class="relative w-full lg:max-w-sm">
+        <!-- Products -->
+        <section class="overflow-hidden rounded-lg border border-slate-200 bg-white px-4 py-6">
+          <div class="flex items-center gap-2 border-b border-slate-100 p-2">
+            <div class="relative flex-1">
               <UIcon
                 name="i-lucide-search"
-                class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+                class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-body/40"
               />
 
               <input
-                v-model="search"
-                type="search"
-                placeholder="Search products, SKU or barcode..."
-                class="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                type="text"
+                placeholder="Search products by name, SKU or barcode..."
+                class="h-9 w-full rounded-md border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-sm text-body outline-none transition placeholder:text-body/40 focus:border-primary focus:bg-white"
               />
             </div>
 
-            <!-- Filters -->
-            <div class="flex flex-wrap items-center gap-2">
-              <select
-                v-model="category"
-                class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-600 outline-none focus:border-primary"
-              >
-                <option value="">All Categories</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Accessories">Accessories</option>
-                <option value="Home & Living">Home & Living</option>
-                <option value="Sports">Sports</option>
-              </select>
+            <select
+              class="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm text-body outline-none focus:border-primary"
+            >
+              <option>All Categories</option>
+              <option>Jerseys</option>
+              <option>T-Shirts</option>
+              <option>Shoes</option>
+              <option>Accessories</option>
+            </select>
 
-              <select
-                v-model="status"
-                class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-600 outline-none focus:border-primary"
-              >
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="draft">Draft</option>
-                <option value="inactive">Inactive</option>
-              </select>
+            <select
+              class="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm text-body outline-none focus:border-primary"
+            >
+              <option>All Brands</option>
+              <option>Adidas</option>
+              <option>Nike</option>
+              <option>Puma</option>
+              <option>Sony</option>
+            </select>
 
-              <button
-                type="button"
-                class="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
-              >
-                <UIcon name="i-lucide-sliders-horizontal" class="size-3.5" />
-                More Filters
-              </button>
-            </div>
+            <select
+              class="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm text-body outline-none focus:border-primary"
+            >
+              <option>All Status</option>
+              <option>In Stock</option>
+              <option>Low Stock</option>
+              <option>Out of Stock</option>
+            </select>
+
+            <button
+              type="button"
+              class="flex h-9 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm text-body transition hover:bg-slate-50"
+            >
+              <UIcon name="i-lucide-list-filter" class="size-4" />
+
+              Filter
+            </button>
+
+            <button type="button" class="px-1 text-sm text-primary hover:underline">Reset</button>
           </div>
-        </div>
 
-        <!-- Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[1100px]">
-            <thead>
-              <tr class="border-b border-slate-100 bg-slate-50/70">
-                <th class="w-10 px-4 py-2.5 text-left">
-                  <input type="checkbox" class="size-3.5 rounded border-slate-300" />
-                </th>
+          <div class="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Brand</th>
+                  <th>SKU</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
 
-                <th
-                  class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500"
-                >
-                  Product
-                </th>
+              <tbody>
+                <tr v-for="product in products" :key="product.id">
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-50"
+                      >
+                        <UIcon name="i-lucide-image" class="size-4 text-body/30" />
+                      </div>
 
-                <th
-                  class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500"
-                >
-                  SKU / Barcode
-                </th>
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-medium text-body">
+                          {{ product.name }}
+                        </p>
 
-                <th
-                  class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500"
-                >
-                  Category
-                </th>
-
-                <th
-                  class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500"
-                >
-                  Price
-                </th>
-
-                <th
-                  class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500"
-                >
-                  Stock
-                </th>
-
-                <th
-                  class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500"
-                >
-                  Status
-                </th>
-
-                <th class="w-12 px-3 py-2.5"></th>
-              </tr>
-            </thead>
-
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="product in filteredProducts"
-                :key="product.id"
-                class="transition hover:bg-slate-50/60"
-              >
-                <!-- Checkbox -->
-                <td class="px-4 py-3">
-                  <input type="checkbox" class="size-3.5 rounded border-slate-300" />
-                </td>
-
-                <!-- Product -->
-                <td class="px-3 py-3">
-                  <div class="flex min-w-[280px] items-center gap-3">
-                    <div
-                      class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
-                    >
-                      <img
-                        v-if="product.image"
-                        :src="product.image"
-                        :alt="product.name"
-                        class="size-full object-cover"
-                      />
-
-                      <UIcon v-else name="i-lucide-image" class="size-5 text-slate-300" />
-                    </div>
-
-                    <div class="min-w-0">
-                      <p class="truncate text-sm font-semibold text-slate-800">
-                        {{ product.name }}
-                      </p>
-
-                      <div class="mt-1 flex items-center gap-2">
-                        <span class="text-[11px] text-slate-400">
-                          {{ product.brand }}
-                        </span>
-
-                        <span
-                          v-if="product.has_variants"
-                          class="rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-600"
-                        >
-                          {{ product.variants }} variants
-                        </span>
+                        <p class="mt-0.5 truncate text-xs text-body/50">
+                          {{ product.details }}
+                        </p>
                       </div>
                     </div>
-                  </div>
-                </td>
+                  </td>
 
-                <!-- SKU -->
-                <td class="px-3 py-3">
-                  <div class="space-y-1">
-                    <p class="font-mono text-xs font-medium text-slate-700">
-                      {{ product.sku }}
-                    </p>
-
-                    <p class="font-mono text-[10px] text-slate-400">
-                      {{ product.barcode || 'No barcode' }}
-                    </p>
-                  </div>
-                </td>
-
-                <!-- Category -->
-                <td class="px-3 py-3">
-                  <span class="text-xs text-slate-600">
+                  <td>
                     {{ product.category }}
-                  </span>
-                </td>
+                  </td>
 
-                <!-- Price -->
-                <td class="px-3 py-3">
-                  <div>
-                    <p class="text-sm font-semibold text-slate-800">
-                      ৳{{ product.selling_price.toLocaleString() }}
-                    </p>
+                  <td>
+                    {{ product.brand }}
+                  </td>
 
-                    <p v-if="product.compare_price" class="text-[11px] text-slate-400 line-through">
-                      ৳{{ product.compare_price.toLocaleString() }}
-                    </p>
-                  </div>
-                </td>
+                  <td class="font-mono text-xs text-body/60">
+                    {{ product.sku }}
+                  </td>
 
-                <!-- Stock -->
-                <td class="px-3 py-3">
-                  <div class="min-w-[100px]">
-                    <div class="flex items-center justify-between">
-                      <span
-                        class="text-xs font-semibold"
-                        :class="
-                          product.stock <= product.min_stock ? 'text-red-600' : 'text-slate-700'
-                        "
-                      >
+                  <td>
+                    <div class="whitespace-nowrap text-sm font-medium text-body">
+                      {{ product.price }}
+                    </div>
+
+                    <div
+                      v-if="product.oldPrice"
+                      class="whitespace-nowrap text-xs text-body/40 line-through"
+                    >
+                      {{ product.oldPrice }}
+                    </div>
+                  </td>
+
+                  <td>
+                    <div class="w-16">
+                      <div class="mb-1 text-sm text-body">
                         {{ product.stock }}
-                      </span>
+                      </div>
 
-                      <span class="text-[10px] text-slate-400">
-                        / {{ product.max_stock || '∞' }}
-                      </span>
+                      <div class="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          class="h-full rounded-full"
+                          :class="stockClass(product.stock)"
+                          :style="{
+                            width: stockWidth(product.stock),
+                          }"
+                        />
+                      </div>
                     </div>
+                  </td>
 
-                    <div class="mt-1 h-1 overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        class="h-full rounded-full"
-                        :class="
-                          product.stock <= product.min_stock
-                            ? 'bg-red-500'
-                            : product.stock <= 20
-                              ? 'bg-amber-500'
-                              : 'bg-emerald-500'
-                        "
-                        :style="{
-                          width: `${Math.min(
-                            (product.stock / (product.max_stock || 100)) * 100,
-                            100,
-                          )}%`,
-                        }"
-                      />
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Status -->
-                <td class="px-3 py-3">
-                  <span
-                    class="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-semibold"
-                    :class="{
-                      'bg-emerald-50 text-emerald-600': product.status === 'active',
-                      'bg-amber-50 text-amber-600': product.status === 'draft',
-                      'bg-slate-100 text-slate-500': product.status === 'inactive',
-                    }"
-                  >
+                  <td>
                     <span
-                      class="size-1.5 rounded-full"
-                      :class="{
-                        'bg-emerald-500': product.status === 'active',
-                        'bg-amber-500': product.status === 'draft',
-                        'bg-slate-400': product.status === 'inactive',
-                      }"
-                    />
+                      class="inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium"
+                      :class="statusClass(product.status)"
+                    >
+                      {{ product.status }}
+                    </span>
+                  </td>
 
-                    {{ product.status }}
-                  </span>
-                </td>
+                  <td>
+                    <div class="flex items-center gap-1">
+                      <button
+                        type="button"
+                        class="flex size-8 items-center justify-center rounded-md border border-slate-200 text-body/60 transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
+                      >
+                        <UIcon name="i-lucide-eye" class="size-4" />
+                      </button>
 
-                <!-- Actions -->
-                <td class="px-3 py-3 text-right">
-                  <button
-                    type="button"
-                    class="flex size-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                  >
-                    <UIcon name="i-lucide-ellipsis" class="size-4" />
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                      <button
+                        type="button"
+                        class="flex size-8 items-center justify-center rounded-md border border-slate-200 text-body/60 transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
+                      >
+                        <UIcon name="i-lucide-pencil" class="size-4" />
+                      </button>
 
-        <!-- Empty -->
-        <div
-          v-if="!filteredProducts.length"
-          class="flex min-h-60 flex-col items-center justify-center"
-        >
-          <div class="flex size-10 items-center justify-center rounded-full bg-slate-100">
-            <UIcon name="i-lucide-package-search" class="size-5 text-slate-400" />
+                      <button
+                        type="button"
+                        class="flex size-8 items-center justify-center rounded-md border border-slate-200 text-body/60 transition hover:border-primary/20 hover:bg-slate-50 hover:text-primary"
+                      >
+                        <UIcon name="i-lucide-more-horizontal" class="size-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <p class="mt-3 text-sm font-medium text-slate-700">No products found</p>
+          <!-- Pagination -->
+          <div class="flex items-center justify-between border-t border-slate-100 px-3 py-3">
+            <p class="text-sm text-body/60">Showing 1 to 10 of 1,240 products</p>
 
-          <p class="mt-1 text-xs text-slate-400">Try changing your search or filters</p>
-        </div>
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-1">
+                <button
+                  type="button"
+                  class="flex size-8 items-center justify-center rounded-md border border-slate-200 text-body/50 hover:bg-slate-50"
+                >
+                  <UIcon name="i-lucide-chevron-left" class="size-4" />
+                </button>
 
-        <!-- Footer -->
-        <div
-          class="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <p class="text-xs text-slate-500">
-            Showing
-            <span class="font-semibold text-slate-700">
-              {{ filteredProducts.length }}
-            </span>
-            of
-            <span class="font-semibold text-slate-700">
-              {{ products.length }}
-            </span>
-            products
-          </p>
+                <button
+                  type="button"
+                  class="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-medium text-white"
+                >
+                  1
+                </button>
 
-          <div class="flex items-center gap-1">
-            <button
-              type="button"
-              class="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50"
-            >
-              <UIcon name="i-lucide-chevron-left" class="size-4" />
-            </button>
+                <button
+                  v-for="page in [2, 3, 4, 5]"
+                  :key="page"
+                  type="button"
+                  class="flex size-8 items-center justify-center rounded-md border border-slate-200 text-sm text-body hover:bg-slate-50"
+                >
+                  {{ page }}
+                </button>
 
-            <button
-              type="button"
-              class="flex size-8 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-white"
-            >
-              1
-            </button>
+                <span class="px-1 text-sm text-body/40"> ... </span>
 
-            <button
-              type="button"
-              class="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-600 hover:bg-slate-50"
-            >
-              2
-            </button>
+                <button
+                  type="button"
+                  class="flex size-8 items-center justify-center rounded-md border border-slate-200 text-sm text-body hover:bg-slate-50"
+                >
+                  124
+                </button>
 
-            <button
-              type="button"
-              class="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
-            >
-              <UIcon name="i-lucide-chevron-right" class="size-4" />
-            </button>
+                <button
+                  type="button"
+                  class="flex size-8 items-center justify-center rounded-md border border-slate-200 text-body hover:bg-slate-50"
+                >
+                  <UIcon name="i-lucide-chevron-right" class="size-4" />
+                </button>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-body/60"> Show </span>
+
+                <select
+                  class="h-8 rounded-md border border-slate-200 bg-white px-2 text-sm text-body outline-none focus:border-primary"
+                >
+                  <option>10</option>
+                  <option>20</option>
+                  <option>50</option>
+                </select>
+
+                <span class="text-sm text-body/60"> per page </span>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   </Default>
 </template>

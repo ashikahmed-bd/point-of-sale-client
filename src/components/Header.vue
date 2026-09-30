@@ -18,7 +18,7 @@ const switchStore = async (store) => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 py-2.5 border-b border-slate-200 bg-white">
+  <header class="sticky top-0 z-50 py-2.5 border-b border-border bg-white">
     <div class="flex h-full items-center">
       <button
         type="button"

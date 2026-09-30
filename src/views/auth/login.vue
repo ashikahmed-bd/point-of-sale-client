@@ -1,38 +1,29 @@
 <script setup>
-import { reactive } from "vue";
-import { useRouter } from "vue-router";
-import BaseButton from "@/components/BaseButton.vue";
-import BaseInput from "@/components/BaseInput.vue";
-import { useAuthStore } from "@/stores/auth";
-import { useToast } from "@nuxt/ui/runtime/composables/useToast.js";
-import { storeToRefs } from "pinia";
+import { reactive } from 'vue'
+import BaseButton from '@/components/BaseButton.vue'
+import BaseInput from '@/components/BaseInput.vue'
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
 
-const toast = useToast();
-const router = useRouter();
+const authStore = useAuthStore()
 
-const authStore = useAuthStore();
-
-const { errors } = storeToRefs(authStore);
+const { errors } = storeToRefs(authStore)
 
 const form = reactive({
-  email: "info@ashikahmed.net",
-  password: "password",
-});
+  email: 'admin@example.com',
+  password: 'password',
+})
 
 const submit = async () => {
-  await authStore.login(form);
-};
+  await authStore.login(form)
+}
 </script>
 
 <template>
   <main class="max-w-5xl mx-auto px-4 py-8">
-    <div
-      class="bg-white rounded-xl grid grid-cols-1 md:grid-cols-2 overflow-hidden"
-    >
+    <div class="bg-white rounded-xl grid grid-cols-1 md:grid-cols-2 overflow-hidden">
       <!-- LEFT -->
-      <div
-        class="hidden md:flex flex-col justify-center items-center p-10 bg-gray-50"
-      >
+      <div class="hidden md:flex flex-col justify-center items-center p-10 bg-gray-50">
         <img src="/auth.jpg" class="mb-6" />
         <h2 class="text-2xl font-bold text-center mb-2">Grow with Buyzin</h2>
         <p class="text-gray-500 text-center">Vendor & Admin dashboard access</p>
@@ -72,16 +63,12 @@ const submit = async () => {
             </RouterLink>
           </div>
 
-          <BaseButton class="w-full" :loading="authStore.loading">
-            Sign In
-          </BaseButton>
+          <BaseButton class="w-full" :loading="authStore.loading"> Sign In </BaseButton>
         </form>
 
         <p class="text-sm text-center mt-6">
           Don’t have an account?
-          <RouterLink to="/register" class="text-primary font-semibold">
-            Sign up
-          </RouterLink>
+          <RouterLink to="/register" class="text-primary font-semibold"> Sign up </RouterLink>
         </p>
       </div>
     </div>

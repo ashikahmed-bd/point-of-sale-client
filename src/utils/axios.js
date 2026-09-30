@@ -3,7 +3,7 @@ import { useStoreStore } from '@/stores/store'
 import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: 'https://api.buyzin.com', // http://127.0.0.1:8000  https://api.buyzin.com
+  baseURL: 'http://127.0.0.1:8000', // http://127.0.0.1:8000
   withCredentials: false,
   withXSRFToken: false,
 })
@@ -35,11 +35,11 @@ apiClient.interceptors.response.use(
     if (error.response) {
       if (error.response.status === 401) {
         // Logout user
-        // const authStore = useAuthStore();
-        // authStore.$reset();
+        const authStore = useAuthStore()
+        authStore.$reset()
 
         // DO NOT return navigateTo — reject error so catch() works
-        // window.location.href = "/login";
+        window.location.href = '/login'
 
         // send the error to catch()
         return Promise.reject(error)

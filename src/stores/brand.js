@@ -1,7 +1,7 @@
-import apiClient from "@/utils/axios";
-import { defineStore } from "pinia";
+import apiClient from '@/utils/axios'
+import { defineStore } from 'pinia'
 
-export const useBrandStore = defineStore("brand", {
+export const useBrandStore = defineStore('brand', {
   state: () => ({
     loading: false,
     errors: {},
@@ -13,40 +13,41 @@ export const useBrandStore = defineStore("brand", {
 
   actions: {
     async all() {
-      this.loading = true;
+      this.loading = true
       try {
-        const response = await apiClient.get("/api/v1/brands");
+        const response = await apiClient.get('/api/brands')
         if (response.status === 200) {
-          return Promise.resolve(response.data);
+          this.brands = response.data
+          return Promise.resolve(response.data)
         }
       } catch (error) {
         if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors);
+          return Promise.reject(error.reponse.data.errors)
         }
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async search(query) {
-      this.loading = true;
+      this.loading = true
       try {
-        const response = await apiClient.get("/api/v1/search/brands", {
+        const response = await apiClient.get('/api/v1/search/brands', {
           params: {
             query: query,
           },
-        });
+        })
         if (response.status === 200) {
-          this.brands = response.data;
-          return Promise.resolve(response.data);
+          this.brands = response.data
+          return Promise.resolve(response.data)
         }
       } catch (error) {
         if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors);
+          return Promise.reject(error.reponse.data.errors)
         }
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
   },
-});
+})

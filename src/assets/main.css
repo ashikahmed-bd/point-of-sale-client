@@ -56,7 +56,7 @@
   }
 
   thead th {
-    @apply px-4 py-3 text-left text-xs font-semibold capitalize;
+    @apply px-2 py-3 text-left text-xs font-semibold capitalize;
   }
 
   tbody tr {
@@ -64,7 +64,7 @@
   }
 
   tbody td {
-    @apply px-4 py-1.5 text-sm text-gray-700;
+    @apply px-2 py-1.5 text-sm text-gray-700;
   }
 
   tbody tr td:first-child {
