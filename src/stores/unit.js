@@ -1,27 +1,28 @@
 import apiClient from '@/utils/axios'
 import { defineStore } from 'pinia'
 
-export const useAppStore = defineStore('app', {
+export const useUnitStore = defineStore('unit', {
   state: () => ({
     loading: false,
     errors: {},
-    config: null,
-    dashboard: [],
+    units: [],
   }),
 
   getters: {},
 
   actions: {
-    async getDashboard() {
+    async all() {
       this.loading = true
       try {
-        const response = await apiClient.get('api/dashboard')
+        const response = await apiClient.get('/api/units')
+
         if (response.status === 200) {
-          this.dashboard = response.data
+          this.units = response.data
+          return Promise.resolve(response.data)
         }
       } catch (error) {
-        if (error) {
-          return Promise.reject(error.response?.data?.errors)
+        if (error.reponse) {
+          return Promise.reject(error.reponse.data.errors)
         }
       } finally {
         this.loading = false

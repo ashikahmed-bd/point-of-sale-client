@@ -44,7 +44,7 @@
   }
 
   main {
-    @apply space-y-4 px-4 py-4;
+    @apply bg-white rounded-2xl px-4 py-6;
   }
 
   table {
@@ -128,17 +128,13 @@
     @apply mb-5;
   }
 
-  .form__header {
-    @apply mb-2 flex items-center justify-between;
-  }
-
   .form__label {
     @apply text-sm font-medium text-gray-700;
   }
 
-  .form__action {
-    @apply cursor-pointer bg-white text-xs font-medium text-body transition-all duration-200;
-    @apply hover:border-primary hover:text-primary;
+  .form__select {
+    @apply w-full rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-body outline-none transition-all duration-200;
+    @apply focus:border-primary focus:ring-2 focus:ring-blue-100;
   }
 
   .form__control {

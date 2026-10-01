@@ -1,6 +1,8 @@
 <script setup>
 import Header from '@/components/Header.vue'
+import { useAuthStore } from '@/stores/auth'
 import { ref } from 'vue'
+const authStore = useAuthStore()
 
 const sidebar = ref(false)
 
@@ -259,6 +261,12 @@ const navigation = [
     ],
   },
 ]
+
+const logout = async () => {
+  if (confirm('Are you sure you went to logout?')) {
+    await authStore.logout()
+  }
+}
 </script>
 
 <template>
@@ -352,11 +360,9 @@ const navigation = [
     </nav>
   </aside>
 
-  <main class="min-h-0 flex-1 lg:pl-60">
-    <div class="h-full min-h-0">
-      <slot />
-    </div>
-  </main>
+  <div class="lg:pl-60 mx-4 my-4">
+    <slot />
+  </div>
 </template>
 
 <style scoped></style>
