@@ -46,6 +46,9 @@ const form = reactive({
   brand_id: '',
   tax_id: '',
   unit_id: '',
+
+  has_variants: false,
+  variants: [],
 })
 
 const submit = async () => {
@@ -116,6 +119,89 @@ onMounted(() => {
   loadTaxes()
   loadUnits()
 })
+
+const addOption = () => {
+  form.options.push({
+    name: '',
+    options: [],
+    input: '',
+  })
+}
+
+const removeOption = (index) => {
+  form.options.splice(index, 1)
+}
+
+const addOptionValue = (index) => {
+  const option = form.options[index]
+  const value = option.input.trim()
+
+  if (!value) return
+
+  if (!option.options.includes(value)) {
+    option.options.push(value)
+  }
+
+  option.input = ''
+}
+
+const removeOptionValue = (optionIndex, valueIndex) => {
+  form.options[optionIndex].options.splice(valueIndex, 1)
+}
+
+const generateVariants = () => {
+  const options = form.options
+    .filter((option) => option.name.trim() && option.options.length)
+    .map((option) => ({
+      name: option.name.trim(),
+      options: option.options,
+    }))
+
+  if (!options.length) {
+    form.variants = []
+    return
+  }
+
+  const combinations = options.reduce(
+    (combinations, option) => {
+      return combinations.flatMap((combination) =>
+        option.options.map((value) => ({
+          ...combination,
+          [option.name]: value,
+        })),
+      )
+    },
+    [{}],
+  )
+
+  form.variants = combinations.map((combination, index) => ({
+    name: Object.values(combination).join(' / '),
+
+    sku: `${form.sku}-${index + 1}`,
+
+    barcode: '',
+
+    options: combination,
+
+    cost_price: form.cost_price ?? 0,
+    selling_price: form.selling_price ?? 0,
+    compare_price: form.compare_price ?? null,
+
+    stock: 0,
+    min_stock: form.min_stock ?? 0,
+    max_stock: form.max_stock ?? null,
+
+    track_stock: form.track_stock ?? true,
+    allow_backorder: form.allow_backorder ?? false,
+
+    is_default: index === 0,
+    active: true,
+  }))
+}
+
+const removeVariant = (index) => {
+  form.variants.splice(index, 1)
+}
 </script>
 
 <template>
@@ -498,6 +584,112 @@ onMounted(() => {
                   </div>
 
                   <USwitch v-model="form.allow_backorder" />
+                </div>
+              </div>
+            </section>
+
+            <section v-if="form.has_variants" class="rounded-lg border border-slate-200 bg-white">
+              <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <div>
+                  <h2 class="text-sm font-semibold text-slate-900">Product Variants</h2>
+
+                  <p class="mt-1 text-xs text-body">Add options and generate product variants.</p>
+                </div>
+
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                  @click="addOption"
+                >
+                  <UIcon name="i-lucide-plus" class="size-4" />
+
+                  Add Option
+                </button>
+              </div>
+
+              <!-- Options -->
+              <div class="p-5">
+                <div
+                  v-for="(option, index) in form.options"
+                  :key="index"
+                  class="mb-3 flex items-end gap-3 last:mb-0"
+                >
+                  <!-- Name -->
+                  <div>
+                    <label class="mb-1.5 block text-xs font-medium text-slate-700"> Name </label>
+
+                    <input
+                      v-model="option.name"
+                      type="text"
+                      placeholder="Color"
+                      class="form__control"
+                    />
+                  </div>
+
+                  <!-- Values -->
+                  <div class="flex-1">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-700"> Values </label>
+
+                    <div
+                      class="flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-slate-200 px-2 py-1.5"
+                    >
+                      <button
+                        v-for="(value, valueIndex) in option.options"
+                        :key="valueIndex"
+                        type="button"
+                        class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1.5 text-sm text-slate-700 transition hover:bg-red-50 hover:text-red-600"
+                        @click="removeOptionValue(index, valueIndex)"
+                      >
+                        {{ value }}
+
+                        <UIcon name="i-lucide-x" class="size-3.5" />
+                      </button>
+
+                      <input
+                        v-model="option.input"
+                        type="text"
+                        placeholder="Type value and press Enter"
+                        class="flex-1 border-0 bg-transparent px-1 py-1 text-sm outline-none"
+                        @keydown.enter.prevent="addOptionValue(index)"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Remove Option -->
+                  <button
+                    type="button"
+                    class="inline-flex size-9 items-center justify-center rounded-md border border-slate-200 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                    @click="removeOption(index)"
+                  >
+                    <UIcon name="i-lucide-trash-2" class="size-4" />
+                  </button>
+                </div>
+
+                <!-- Empty -->
+                <div
+                  v-if="!form.options.length"
+                  class="rounded-lg border border-dashed border-slate-300 px-5 py-8 text-center"
+                >
+                  <UIcon name="i-lucide-layers-2" class="mx-auto size-8 text-slate-300" />
+
+                  <p class="mt-2 text-sm font-medium text-slate-700">No options added</p>
+
+                  <p class="mt-1 text-xs text-body">
+                    Click Add Option to create your first option.
+                  </p>
+                </div>
+
+                <!-- Generate -->
+                <div v-if="form.options.length" class="mt-5 flex justify-end">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                    @click="generateVariants"
+                  >
+                    <UIcon name="i-lucide-layers-2" class="size-4" />
+
+                    Generate Variants
+                  </button>
                 </div>
               </div>
             </section>

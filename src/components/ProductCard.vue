@@ -1,4 +1,8 @@
 <script setup>
+import { useCartStore } from '@/stores/cart'
+
+const cartStore = useCartStore()
+
 const props = defineProps({
   product: {
     type: Object,
@@ -8,19 +12,23 @@ const props = defineProps({
 
 const addToCart = async (product) => {
   await cartStore.add(product)
+  await cartStore.index()
+
+  const audio = new Audio('/pos.wav')
+  await audio.play()
 }
 </script>
 
 <template>
   <article
     @click="addToCart(product)"
-    class="group relative cursor-pointer overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-violet-300"
+    class="group relative cursor-pointer overflow-hidden rounded border border-border bg-white transition hover:border-primary"
   >
     <div
-      class="relative flex aspect-square items-center justify-center overflow-hidden bg-gray-50 p-3"
+      class="relative flex aspect-square items-center justify-center overflow-hidden bg-gray-50 p-2.5 transition"
     >
       <img
-        src="https://placehold.co/600x600"
+        :src="product.cover_url"
         :alt="product.name"
         class="h-full w-full object-contain mix-blend-multiply transition duration-300 group-hover:scale-105"
       />
@@ -33,18 +41,18 @@ const addToCart = async (product) => {
 
       <div class="flex items-end justify-between gap-2">
         <div class="min-w-0">
-          <p class="truncate text-sm font-semibold text-primary">৳{{ product.selling_price }}</p>
+          <p class="truncate text-sm font-semibold text-primary">
+            {{ $currency(product.price) }}
+          </p>
 
-          <p v-if="product.compare_price" class="truncate text-xs text-gray-400 line-through">
-            ৳{{ product.compare_price }}
+          <p v-if="product.base_price" class="truncate text-xs text-gray-400 line-through">
+            {{ $currency(product.base_price) }}
           </p>
         </div>
 
         <div v-if="product.track_stock" class="shrink-0 text-right">
-          <p class="text-xs text-gray-400">Stock</p>
-          <p class="text-xs font-medium text-gray-600">
-            {{ product.max_stock }}
-          </p>
+          <p class="text-xs font-medium text-muted">Stock {{ product.stock }}</p>
+          <p class="bg-slate-100 px-2 py-0.5 text-2xs text-body border rounded-full">4 Variants</p>
         </div>
       </div>
     </div>

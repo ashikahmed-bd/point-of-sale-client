@@ -1,22 +1,31 @@
 <script setup>
+import DraftSales from '@/components/DraftSales.vue'
 import ProductCard from '@/components/ProductCard.vue'
+import RecentSales from '@/components/RecentSales.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useBrandStore } from '@/stores/brand'
 import { useCartStore } from '@/stores/cart'
 import { useCategoryStore } from '@/stores/category'
+import { useCustomerStore } from '@/stores/customer'
 import { useProductStore } from '@/stores/product'
+import { useSaleStore } from '@/stores/sale'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive } from 'vue'
 import { RouterLink } from 'vue-router'
 
+const authStore = useAuthStore()
 const categoryStore = useCategoryStore()
 const brandStore = useBrandStore()
 const productStore = useProductStore()
 const cartStore = useCartStore()
+const customerStore = useCustomerStore()
+const saleStore = useSaleStore()
 
 const { categories } = storeToRefs(categoryStore)
 const { brands } = storeToRefs(brandStore)
 const { products } = storeToRefs(productStore)
-const { items } = storeToRefs(cartStore)
+const { cart } = storeToRefs(cartStore)
+const { customers } = storeToRefs(customerStore)
 
 const loadCategories = async () => {
   await categoryStore.all()
@@ -30,41 +39,167 @@ const loadProducts = async () => {
   await productStore.all()
 }
 
+const loadCart = async () => {
+  await cartStore.index()
+}
+
+const loadCustomers = async () => {
+  await customerStore.all()
+}
+
 onMounted(() => {
   loadCategories()
   loadBrands()
   loadProducts()
+  loadCart()
+  loadCustomers()
 })
 
-const form = reactive({
-  category_id: null,
-  brand_id: null,
+const search = reactive({
+  category_id: '',
+  brand_id: '',
+  keywords: '',
 })
+
+const customer = reactive({
+  name: '',
+  phone: '',
+  email: '',
+  address: '',
+  city: '',
+  state: '',
+  postcode: '',
+  opening_balance: 0,
+  credit_limit: null,
+  notes: '',
+})
+
+const addCustomer = async (close) => {
+  await customerStore.store(customer)
+  close()
+  await loadCustomers()
+}
+
+const form = reactive({
+  customer_id: '',
+  payable: 0,
+  shipping: '',
+})
+
+const discount = reactive({
+  amount: '',
+  type: 'fixed',
+})
+
+const addDiscount = async () => {
+  await cartStore.discount(discount)
+  loadCart()
+}
+
+const addShipping = async (close) => {
+  await cartStore.shipping(form.shipping)
+
+  close()
+  loadCart()
+  form.shipping = 0
+}
+
+const placeOrder = async () => {
+  await saleStore.store(form)
+}
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <main class="grid h-[calc(100vh-30px)] grid-cols-[minmax(0,1fr)_350px] gap-4">
-      <section class="flex min-h-0 min-w-0 flex-col rounded-2xl bg-white">
-        <header class="shrink-0 border-b border-slate-100">
+  <div class="min-h-dvh bg-slate-200">
+    <main class="grid min-h-0 grid-cols-1 gap-3 px-3 py-3 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <section class="flex min-h-0 min-w-0 flex-col rounded-xl bg-white">
+        <header class="sticky top-0 z-10 rounded-t-xl border-b bg-white">
           <div class="flex items-center justify-between gap-3 px-4 py-3">
-            <div class="min-w-0">
-              <h1 class="text-sm font-semibold text-slate-900">Point of Sale</h1>
-              <p class="mt-1 text-xs text-slate-400">Select products to add to cart</p>
-            </div>
-
-            <div
-              class="flex shrink-0 items-center gap-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500"
+            <UDropdownMenu
+              :items="
+                authStore.stores.map((store) => ({
+                  ...store,
+                  onSelect: () => authStore.setStore(store),
+                }))
+              "
+              :popper="{ placement: 'bottom-end' }"
             >
-              <UIcon name="i-lucide-shopping-cart" class="size-4" />
+              <button type="button" class="flex items-center gap-2 transition hover:bg-slate-50">
+                <span
+                  class="flex size-10 items-center justify-center rounded bg-violet-50 text-primary"
+                >
+                  <UIcon name="i-lucide-store" class="size-8" />
+                </span>
 
-              Cart
+                <span class="hidden text-left sm:block">
+                  <span class="block text-sm font-normal text-body"> Store </span>
+
+                  <span class="block max-w-32 truncate text-xs font-medium text-slate-700">
+                    {{ authStore.store?.name }}
+                  </span>
+                </span>
+
+                <UIcon name="i-lucide-chevron-down" class="size-4 text-body" />
+              </button>
+
+              <template #item="{ item }">
+                <div class="flex w-full items-center gap-2">
+                  <UIcon name="i-lucide-store" class="size-4 text-body" />
+
+                  <span class="flex-1 truncate">
+                    {{ item.name }}
+                  </span>
+
+                  <UIcon
+                    v-if="authStore.store?.id === item.id"
+                    name="i-lucide-check"
+                    class="size-4 text-primary"
+                  />
+                </div>
+              </template>
+            </UDropdownMenu>
+
+            <div class="flex items-center gap-2">
+              <RouterLink
+                :to="{ name: 'dashboard' }"
+                class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+              >
+                <UIcon name="i-lucide-house" class="size-4" />
+                <span class="hidden sm:inline">Home</span>
+              </RouterLink>
+
+              <button
+                type="button"
+                class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+              >
+                <UIcon name="i-lucide-file-pen-line" class="size-4" />
+                <span class="hidden sm:inline">Draft</span>
+              </button>
+
+              <RecentSales />
+
+              <DraftSales />
             </div>
           </div>
+        </header>
 
-          <!-- Search -->
-          <div class="px-4 pb-3">
-            <div class="relative">
+        <div class="shrink-0 px-4 py-2.5">
+          <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <select v-model="search.category_id" class="form__select">
+              <option value="">All Categories</option>
+              <option v-for="category in categories.data" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+
+            <select v-model="search.brand_id" class="form__select">
+              <option value="">All Brands</option>
+              <option v-for="brand in brands.data" :key="brand.id" :value="brand.id">
+                {{ brand.name }}
+              </option>
+            </select>
+
+            <div class="relative sm:col-span-2 lg:col-span-1">
               <UIcon
                 name="i-lucide-search"
                 class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
@@ -72,40 +207,15 @@ const form = reactive({
 
               <input
                 type="search"
+                v-model="search.keywords"
                 placeholder="Search products..."
-                class="h-10 w-full rounded-md border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-50"
+                class="form__control pl-9"
               />
             </div>
           </div>
+        </div>
 
-          <!-- Filters -->
-          <div class="grid grid-cols-2 gap-2 px-4 pb-3">
-            <select
-              v-model="form.category_id"
-              class="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-600 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-50"
-            >
-              <option value="">All Categories</option>
-
-              <option v-for="category in categories.data" :key="category.id" :value="category.id">
-                {{ category.name }}
-              </option>
-            </select>
-
-            <select
-              v-model="form.brand_id"
-              class="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-600 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-50"
-            >
-              <option value="">All Brands</option>
-
-              <option v-for="brand in brands.data" :key="brand.id" :value="brand.id">
-                {{ brand.name }}
-              </option>
-            </select>
-          </div>
-        </header>
-
-        <!-- Product List -->
-        <div class="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-none">
+        <div class="min-h-0 flex-1 overflow-y-auto px-4 py-2 scrollbar-none">
           <div
             class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
           >
@@ -114,280 +224,392 @@ const form = reactive({
         </div>
       </section>
 
-      <aside class="sticky top-3 flex h-[calc(100vh-80px)] flex-col rounded-2xl bg-white">
-        <header class="shrink-0 border-b border-slate-100 p-3">
-          <div class="mb-3 flex items-center justify-between">
-            <div>
-              <h2 class="text-sm font-semibold text-slate-800">Current Order</h2>
+      <!-- Cart -->
+      <aside
+        class="sticky top-2 flex min-h-0 max-h-[calc(100dvh-1rem)] flex-col rounded-xl bg-white px-4 py-2.5"
+      >
+        <header class="shrink-0 border-b border-border py-2.5">
+          <div class="flex items-center gap-2">
+            <UModal
+              title="Add Customer"
+              description="Create a new customer profile"
+              :close="{
+                color: 'primary',
+                variant: 'outline',
+                class: 'rounded-full',
+              }"
+              :ui="{
+                content: 'z-30 sm:max-w-xl mb-16',
+              }"
+            >
+              <button
+                type="button"
+                class="flex shrink-0 items-center justify-center rounded-md border border-slate-200 p-2 text-slate-500 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
+                title="Add Customer"
+              >
+                <UIcon name="i-lucide-user-plus" class="size-4" />
+              </button>
 
-              <p class="mt-1 text-xs text-slate-400">Customer & cart</p>
+              <template #body>
+                <div class="space-y-4">
+                  <div class="grid grid-cols-2 gap-3">
+                    <BaseInput
+                      v-model="customer.name"
+                      label="Name"
+                      placeholder="Enter customer name"
+                      :required="true"
+                      error=""
+                    />
+
+                    <BaseInput
+                      v-model="customer.phone"
+                      label="Phone"
+                      placeholder="Enter phone number"
+                      :required="true"
+                      error=""
+                    />
+
+                    <BaseInput
+                      v-model="customer.email"
+                      label="Email"
+                      type="email"
+                      placeholder="Enter email address"
+                      :required="false"
+                      error=""
+                    />
+
+                    <BaseInput
+                      v-model="customer.postcode"
+                      label="Postcode"
+                      placeholder="Enter postcode"
+                      :required="false"
+                      error=""
+                    />
+                  </div>
+
+                  <BaseInput
+                    v-model="customer.address"
+                    label="Address"
+                    placeholder="Enter address"
+                    :required="true"
+                    error=""
+                  />
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <BaseInput
+                      v-model="customer.city"
+                      label="City"
+                      placeholder="Enter city"
+                      :required="false"
+                      error=""
+                    />
+
+                    <BaseInput
+                      v-model="customer.state"
+                      label="State"
+                      placeholder="Enter state"
+                      :required="false"
+                      error=""
+                    />
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <BaseInput
+                      v-model="customer.opening_balance"
+                      label="Opening Balance"
+                      type="number"
+                      placeholder="0.00"
+                      :required="false"
+                      error=""
+                    />
+
+                    <BaseInput
+                      v-model="customer.credit_limit"
+                      label="Credit Limit"
+                      type="number"
+                      placeholder="0.00"
+                      :required="false"
+                      error=""
+                    />
+                  </div>
+
+                  <BaseTextarea
+                    label="Notes"
+                    v-model="customer.notes"
+                    placeholder="Add notes..."
+                    :required="false"
+                    error=""
+                  />
+                </div>
+              </template>
+
+              <template #footer="{ close }">
+                <div class="flex w-full justify-end gap-2">
+                  <UButton color="neutral" variant="outline" label="Cancel" @click="close" />
+
+                  <UButton
+                    @click="addCustomer(close)"
+                    color="primary"
+                    label="Submit"
+                    icon="i-lucide-user-plus"
+                  />
+                </div>
+              </template>
+            </UModal>
+
+            <USelectMenu
+              v-model="form.customer_id"
+              value-key="value"
+              icon="i-lucide-search"
+              :items="
+                customers.data?.map((customer) => ({
+                  label: `${customer.name} - ${customer.phone}`,
+                  value: customer.id,
+                }))
+              "
+              placeholder="Walk-in Customer"
+              class="min-w-0 flex-1"
+            />
+          </div>
+        </header>
+
+        <div class="min-h-0 flex-1 overflow-y-auto py-2 scrollbar-none">
+          <div class="space-y-1">
+            <template v-if="cart">
+              <article
+                v-for="item in cart.items"
+                :key="item.id"
+                class="bg-slate-100 rounded flex items-start gap-2 px-2 py-1.5"
+              >
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <h3 class="truncate text-sm font-medium text-heading">
+                        {{ item.name }}
+                      </h3>
+
+                      <p class="mt-0.5 text-xs text-slate-400">
+                        {{ $currency(item.price) }} x {{ item.quantity }}
+
+                        <span
+                          v-if="item.tax_rate > 0"
+                          class="ml-1.5 before:mr-1.5 before:content-['·']"
+                        >
+                          {{ item.tax_rate }}% tax
+                        </span>
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      @click="cartStore.remove(item.id)"
+                      class="shrink-0 rounded-md p-1 text-slate-400 transition hover:bg-red-50 hover:text-red-500"
+                    >
+                      <UIcon name="i-lucide-trash-2" class="size-4" />
+                    </button>
+                  </div>
+
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="inline-flex items-center">
+                      <button
+                        type="button"
+                        class="flex size-7 items-center justify-center text-slate-500 transition hover:bg-slate-50 hover:text-red-500"
+                      >
+                        <UIcon name="i-lucide-minus" class="size-3.5" />
+                      </button>
+
+                      <span
+                        class="flex min-w-8 items-center justify-center text-xs font-semibold text-body"
+                      >
+                        {{ item.quantity }}
+                      </span>
+
+                      <button
+                        type="button"
+                        class="flex size-7 items-center justify-center transition hover:bg-slate-50 hover:text-emerald-600"
+                      >
+                        <UIcon name="i-lucide-plus" class="size-3.5" />
+                      </button>
+                    </div>
+
+                    <span class="text-sm font-semibold"> {{ $currency(item.total) }} </span>
+                  </div>
+                </div>
+              </article>
+            </template>
+            <template v-else>
+              <article class="flex min-h-20 items-center justify-center py-6">
+                <div class="flex flex-col items-center justify-center gap-3 text-center">
+                  <div class="flex rounded-full bg-primary/10 p-3">
+                    <UIcon name="i-lucide-shopping-bag" class="size-8 text-primary" />
+                  </div>
+
+                  <div>
+                    <p class="text-sm font-medium text-slate-700">Your cart is empty</p>
+                    <p class="mt-1 text-xs text-slate-400">Add items to your cart to get started</p>
+                  </div>
+                </div>
+              </article>
+            </template>
+          </div>
+        </div>
+
+        <div class="bg-white shrink-0">
+          <div class="flex items-center gap-2 py-2">
+            <div class="relative flex-1">
+              <UIcon
+                name="i-lucide-tag"
+                class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+              />
+
+              <input
+                type="text"
+                v-model="discount.amount"
+                placeholder="Enter discount"
+                class="w-full rounded border border-border bg-slate-50 py-2 pl-9 pr-16 text-sm text-body outline-none transition placeholder:text-slate-400"
+              />
+
+              <select
+                v-model="discount.type"
+                class="absolute right-1 top-1/2 -translate-y-1/2 cursor-pointer rounded text-xs text-muted font-medium outline-none appearance"
+              >
+                <option value="fixed">Fixed</option>
+                <option value="percent">Percent</option>
+              </select>
             </div>
 
             <button
               type="button"
-              class="flex size-8 items-center justify-center rounded border border-slate-200 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+              @click="addDiscount"
+              class="shrink-0 rounded bg-primary px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
             >
-              <UIcon name="i-lucide-trash-2" class="size-4" />
+              Apply
             </button>
           </div>
-
-          <!-- Customer -->
-          <div class="flex gap-2">
-            <button
-              type="button"
-              class="flex size-9 shrink-0 items-center justify-center rounded-md bg-violet-50 text-violet-600"
-            >
-              <UIcon name="i-lucide-user-round" class="size-4" />
-            </button>
-
-            <input
-              type="text"
-              value="Walk-in Customer"
-              class="h-9 min-w-0 flex-1 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-50"
-            />
-
-            <button
-              type="button"
-              class="flex size-9 shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
-            >
-              <UIcon name="i-lucide-user-plus" class="size-4" />
-            </button>
-          </div>
-        </header>
-
-        <!-- Cart Items -->
-        <div class="min-h-0 flex-1 overflow-y-auto px-3 scrollbar-none">
-          <div class="divide-y divide-slate-100">
-            <article v-for="value in 10" :key="value" class="flex items-center gap-3 py-3">
-              <!-- Image -->
-              <div
-                class="flex size-10 shrink-0 items-center justify-center rounded-md bg-slate-100"
-              >
-                <UIcon name="i-lucide-package" class="size-4 text-slate-400" />
-              </div>
-
-              <!-- Info -->
-              <div class="min-w-0 flex-1">
-                <h3 class="truncate text-sm font-semibold leading-5 text-slate-800">
-                  Laptop Stand
-                </h3>
-
-                <span class="mt-1 block text-xs text-slate-400"> ৳39.99 × 2 </span>
-
-                <!-- Quantity -->
-                <div
-                  class="mt-2 inline-flex items-center overflow-hidden rounded border border-slate-200"
-                >
-                  <button
-                    type="button"
-                    class="flex size-7 items-center justify-center text-slate-400 transition hover:bg-slate-50 hover:text-red-500"
-                  >
-                    <UIcon name="i-lucide-minus" class="size-3.5" />
-                  </button>
-
-                  <span
-                    class="flex h-7 min-w-8 items-center justify-center border-x border-slate-200 px-2 text-xs font-semibold text-slate-700"
-                  >
-                    2
-                  </span>
-
-                  <button
-                    type="button"
-                    class="flex size-7 items-center justify-center text-slate-400 transition hover:bg-slate-50 hover:text-emerald-600"
-                  >
-                    <UIcon name="i-lucide-plus" class="size-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              <!-- Price -->
-              <div class="flex shrink-0 flex-col items-end gap-2">
-                <strong class="text-sm font-bold text-slate-800"> ৳79.98 </strong>
-
-                <button type="button" class="text-slate-400 transition hover:text-red-500">
-                  <UIcon name="i-lucide-x" class="size-4" />
-                </button>
-              </div>
-            </article>
-          </div>
-        </div>
-
-        <!-- Summary -->
-        <div class="shrink-0">
-          <div class="space-y-2 px-3 py-3">
+          <div class="space-y-0.5 py-2">
             <div class="flex items-center justify-between text-sm">
-              <span class="text-slate-500"> Subtotal </span>
-              <span class="font-semibold text-slate-700"> ৳14,700 </span>
+              <span class="text-body">Subtotal</span>
+              <span class="text-body">
+                {{ $currency(cartStore.cart?.subtotal) }}
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-body">Discount</span>
+              <span class="text-danger"> - {{ $currency(cartStore.cart?.discount) }} </span>
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-body"> Tax </span>
+              <span class="text-body">
+                {{ $currency(cartStore.cart?.tax) }}
+              </span>
             </div>
 
             <div class="flex items-center justify-between text-sm">
               <div class="flex items-center gap-1">
-                <span class="text-slate-500"> Discount </span>
+                <span class="text-body">Shipping</span>
 
-                <button
-                  type="button"
-                  class="flex size-6 items-center justify-center rounded text-slate-400 transition hover:bg-violet-50 hover:text-violet-600"
+                <UModal
+                  title="Add Shipping Charge"
+                  :close="{
+                    color: 'primary',
+                    variant: 'outline',
+                    class: 'rounded-full',
+                  }"
                 >
-                  <UIcon name="i-lucide-percent" class="size-3.5" />
-                </button>
+                  <button
+                    type="button"
+                    class="flex items-center justify-center rounded p-1 text-body transition hover:bg-primary/5 hover:text-primary"
+                    title="Add shipping"
+                  >
+                    <UIcon name="i-lucide-truck" class="size-3.5" />
+                  </button>
+
+                  <template #body>
+                    <BaseInput
+                      v-model="form.shipping"
+                      label="Shipping"
+                      type="number"
+                      placeholder="Enter shipping charge"
+                    />
+                  </template>
+
+                  <template #footer="{ close }">
+                    <div class="flex justify-end gap-2">
+                      <UButton color="neutral" variant="outline" label="Cancel" @click="close" />
+
+                      <UButton
+                        color="primary"
+                        label="Apply"
+                        icon="i-lucide-check"
+                        @click="addShipping(close)"
+                      />
+                    </div>
+                  </template>
+                </UModal>
               </div>
 
-              <span class="font-semibold text-red-500"> - ৳550 </span>
-            </div>
-
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-slate-500">
-                Tax
-                <span class="text-xs"> (VAT 5%) </span>
+              <span class="text-body">
+                {{ $currency(cartStore.cart?.shipping) }}
               </span>
-
-              <span class="font-semibold text-slate-700"> ৳707.50 </span>
             </div>
 
-            <div
-              class="flex items-center justify-between border-t border-dashed border-slate-200 pt-2"
-            >
-              <span class="text-sm font-bold text-slate-800"> Grand Total </span>
-
-              <span class="text-base font-bold text-violet-600"> ৳14,857 </span>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-bold text-body"> Grand Total </span>
+              <span class="text-base font-bold text-primary">
+                {{ $currency(cartStore.cart?.total) }}
+              </span>
             </div>
           </div>
 
-          <!-- Payment -->
-          <div class="space-y-3 border-t border-slate-100 px-3 pb-3 pt-3">
-            <label class="block text-sm font-medium text-slate-500"> Payment Method </label>
+          <div class="space-y-2.5">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-medium text-slate-500"> Received Amount </label>
 
-            <div class="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                class="flex h-9 items-center justify-center gap-2 rounded-md border border-violet-600 bg-violet-50 text-xs font-semibold text-violet-600"
-              >
-                <UIcon name="i-lucide-banknote" class="size-4" />
-
-                Cash
-              </button>
-
-              <button
-                type="button"
-                class="flex h-9 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white text-xs font-medium text-slate-500 transition hover:border-violet-300 hover:text-violet-600"
-              >
-                <UIcon name="i-lucide-credit-card" class="size-4" />
-
-                Card
-              </button>
-
-              <button
-                type="button"
-                class="flex h-9 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white text-xs font-medium text-slate-500 transition hover:border-violet-300 hover:text-violet-600"
-              >
-                <UIcon name="i-lucide-building-2" class="size-4" />
-
-                Bank
-              </button>
-            </div>
-
-            <div>
-              <div class="mb-2 flex items-center justify-between">
-                <label class="text-sm font-medium text-slate-500"> Received Amount </label>
-
-                <span class="text-sm font-medium text-slate-500"> Change </span>
+                <span class="text-xs font-medium text-slate-500"> Change </span>
               </div>
 
-              <div class="flex gap-2">
-                <div class="relative min-w-0 flex-1">
-                  <span
-                    class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400"
-                  >
-                    ৳
-                  </span>
-
-                  <input
-                    type="number"
-                    value="15000"
-                    class="h-9 w-full rounded-md border border-slate-200 bg-white pl-7 pr-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-50"
-                  />
-                </div>
+              <div class="grid grid-cols-2 gap-2">
+                <input
+                  v-model.number="form.payable"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  class="w-full rounded border border-border bg-white px-4 py-1.5 text-sm font-semibold text-body outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+                />
 
                 <div
-                  class="flex items-center justify-center rounded-md border border-emerald-100 bg-emerald-50 px-3 text-sm font-bold text-emerald-600"
+                  class="flex items-center justify-end rounded border border-emerald-100 bg-emerald-50 px-3 text-sm font-bold text-emerald-600"
                 >
-                  ৳142.50
+                  {{ $currency(Math.max(Number(form.payable) - Number(cartStore.cart?.total), 0)) }}
                 </div>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-red-600"> Due Amount </span>
+                <span class="text-sm font-bold text-red-600">
+                  {{ $currency(Math.max(Number(cartStore.cart?.total) - Number(form.payable), 0)) }}
+                </span>
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="py-2.5">
+          <button
+            type="button"
+            @click="placeOrder"
+            class="w-full flex items-center justify-center gap-2 rounded bg-primary py-2.5 text-sm font-semibold text-white"
+          >
+            <UIcon v-if="saleStore.loading" name="i-lucide-loader" class="size-4" />
+            <UIcon v-else name="i-lucide-credit-card" class="size-4" />
+            <span>Pay Now</span>
+          </button>
         </div>
       </aside>
     </main>
-
-    <!-- Footer -->
-    <footer
-      class="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between gap-3 bg-white px-3 py-2"
-    >
-      <!-- Left -->
-      <div class="flex min-w-0 items-center gap-2">
-        <div class="mr-2 hidden items-center gap-2 border-r border-slate-200 pr-3 xl:flex">
-          <span class="size-2 rounded-full bg-emerald-500"></span>
-
-          <span class="whitespace-nowrap text-xs text-slate-500"> Online · synced </span>
-        </div>
-
-        <RouterLink
-          :to="{ name: 'dashboard' }"
-          class="flex h-9 shrink-0 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-        >
-          <UIcon name="i-lucide-house" class="size-4" />
-
-          <span class="hidden sm:inline"> Home </span>
-        </RouterLink>
-
-        <button
-          type="button"
-          class="flex h-9 shrink-0 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-        >
-          <UIcon name="i-lucide-refresh-cw" class="size-4" />
-
-          <span class="hidden sm:inline"> Reset </span>
-        </button>
-
-        <button
-          type="button"
-          class="hidden h-9 shrink-0 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 md:flex"
-        >
-          <UIcon name="i-lucide-file-clock" class="size-4" />
-
-          Recent
-        </button>
-
-        <button
-          type="button"
-          class="flex h-9 shrink-0 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-        >
-          <UIcon name="i-lucide-pause-circle" class="size-4" />
-
-          <span class="hidden sm:inline"> Hold </span>
-        </button>
-      </div>
-
-      <!-- Right -->
-      <div class="flex shrink-0 items-center gap-3">
-        <div class="hidden text-right sm:block">
-          <span class="block text-xs font-medium uppercase tracking-wide text-slate-400">
-            Total
-          </span>
-
-          <span class="text-base font-bold text-slate-900"> ৳14,857 </span>
-        </div>
-
-        <button
-          type="button"
-          class="flex h-10 items-center justify-center gap-2 rounded-md bg-violet-600 px-5 text-sm font-semibold text-white transition hover:bg-violet-700 active:scale-[0.98]"
-        >
-          <UIcon name="i-lucide-credit-card" class="size-4" />
-
-          Pay Now
-        </button>
-      </div>
-    </footer>
   </div>
 </template>

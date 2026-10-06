@@ -28,10 +28,26 @@ export const useCategoryStore = defineStore('category', {
       }
     },
 
+    async store(payload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/api/categories', payload)
+        if (response.status === 201) {
+          return Promise.resolve(response.data)
+        }
+      } catch (error) {
+        if (error.response) {
+          return Promise.reject(error.response.data.errors)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
     async search(query) {
       this.loading = true
       try {
-        const response = await apiClient.get('/api/v1/search/categories', {
+        const response = await apiClient.get('/api/search/categories', {
           params: {
             query: query,
           },

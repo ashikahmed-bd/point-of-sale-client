@@ -10,8 +10,11 @@ pinia.use(piniaPluginPersistedstate)
 import App from './App.vue'
 import router from './router'
 import ui from '@nuxt/ui/vue-plugin'
+import { currency } from './utils/currency'
 
 const app = createApp(App)
+
+app.config.globalProperties.$currency = currency
 
 app.use(pinia)
 app.use(router)

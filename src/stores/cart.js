@@ -5,49 +5,40 @@ export const useCartStore = defineStore('cart', {
   state: () => ({
     loading: false,
     errors: {},
-    items: [],
+    cart: null,
   }),
 
-  getters: {
-    itemsCount: (state) => {
-      return state.items.reduce((total, item) => {
-        return total + item.quantity
-      }, 0)
-    },
-
-    subtotal: (state) => {
-      return state.items.reduce((total, item) => {
-        return total + Number(item.price) * item.quantity
-      }, 0)
-    },
-
-    discount: (state) => {
-      return state.items.reduce((total, item) => {
-        return total + Number(item.discount ?? 0) * item.quantity
-      }, 0)
-    },
-
-    tax: (state) => {
-      return state.items.reduce((total, item) => {
-        const price = Number(item.price) * item.quantity
-        const taxRate = Number(item.tax_rate ?? 0)
-
-        return total + (price * taxRate) / 100
-      }, 0)
-    },
-
-    total() {
-      return this.subtotal - this.discount + this.tax
-    },
-
-    isEmpty: (state) => state.items.length === 0,
+  persist: {
+    pick: ['cart'],
   },
 
+  getters: {},
+
   actions: {
+    async index() {
+      try {
+        const response = await apiClient.get('/api/cart')
+
+        if (response.status >= 200 && response.status < 300) {
+          this.cart = response.data?.data
+          return response.data?.data
+        }
+      } catch (error) {
+        if (error.reponse) {
+          return Promise.reject(error.reponse.data.errors)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
     async add(product) {
       this.loading = true
       try {
-        const response = await apiClient.post(`/api/v1/products/${product}/variants`, payload)
+        const response = await apiClient.post(`/api/cart/items`, {
+          product_id: product.id,
+          quantity: 1,
+        })
 
         if (response.status === 200) {
           return Promise.resolve(response.data)
@@ -56,6 +47,54 @@ export const useCartStore = defineStore('cart', {
         if (error.reponse) {
           return Promise.reject(error.reponse.data.errors)
         }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async discount(payload) {
+      this.loading = true
+      try {
+        const response = await apiClient.patch(`/api/cart/discount`, payload)
+
+        if (response.status === 200) {
+          return Promise.resolve(response.data)
+        }
+      } catch (error) {
+        if (error.reponse) {
+          return Promise.reject(error.reponse.data.errors)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async shipping(payload) {
+      this.loading = true
+      try {
+        const response = await apiClient.patch(`/api/cart/shipping`, {
+          shipping: Number(payload),
+        })
+
+        if (response.status === 200) {
+          return Promise.resolve(response.data)
+        }
+      } catch (error) {
+        if (error.reponse) {
+          return Promise.reject(error.reponse.data.errors)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async reset() {
+      this.loading = true
+      try {
+        this.cart = null
+        return await this.index()
+      } catch (error) {
+        throw error
       } finally {
         this.loading = false
       }

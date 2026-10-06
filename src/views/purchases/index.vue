@@ -1,3 +1,7 @@
-<script lang="ts" setup></script>
+<script setup>
+import Default from '@/layouts/Default.vue'
+</script>
 
-<template></template>
+<template>
+  <Default> </Default>
+</template>

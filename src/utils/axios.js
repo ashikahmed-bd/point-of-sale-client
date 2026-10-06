@@ -1,25 +1,25 @@
 import { useAuthStore } from '@/stores/auth'
-import { useStoreStore } from '@/stores/store'
+import { useCartStore } from '@/stores/cart'
 import axios from 'axios'
 
 const apiClient = axios.create({
   baseURL: 'http://127.0.0.1:8000', // http://127.0.0.1:8000
   withCredentials: false,
-  withXSRFToken: false,
 })
 
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore()
-    const storeStore = useStoreStore()
+    const cartStore = useCartStore()
 
     if (authStore.token) {
       config.headers['Authorization'] = `Bearer ${authStore.token}`
+      config.headers['X-Store-ID'] = authStore.store?.id ?? null
     }
 
-    if (storeStore.selected) {
-      config.headers['X-Store-ID'] = storeStore.selected.id
+    if (cartStore.cart?.token) {
+      config.headers['X-Cart-Token'] = cartStore.cart?.token
     }
 
     return config

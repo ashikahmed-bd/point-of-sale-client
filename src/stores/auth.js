@@ -6,13 +6,15 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     loading: false,
     errors: {},
-    user: null,
     token: null,
+    user: null,
+    stores: [],
+    store: null,
   }),
 
   // persist: true,
   persist: {
-    pick: ['user', 'token'],
+    pick: ['token', 'user', 'store', 'stores'],
   },
 
   getters: {
@@ -20,14 +22,21 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    setStore(store) {
+      console.log('Setting store:', store)
+      this.store = store
+    },
+
     async login(formData) {
       this.loading = true
       try {
         const response = await apiClient.post('/api/auth/login', formData)
         if (response.status === 200) {
           this.token = response.data.token
-          console.log(response.data.message)
+          this.stores = response.data.stores
+          this.store = this.stores.find((store) => store.default === true)
           toast.success(response.data.message)
+          window.location.href = '/'
           return Promise.resolve(response)
         }
       } catch (error) {

@@ -29,6 +29,22 @@ export const useBrandStore = defineStore('brand', {
       }
     },
 
+    async store(payload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/api/brands', payload)
+        if (response.status === 201) {
+          return Promise.resolve(response.data)
+        }
+      } catch (error) {
+        if (error.response) {
+          return Promise.reject(error.response.data.errors)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
     async search(query) {
       this.loading = true
       try {
