@@ -1,6 +1,5 @@
 import apiClient from '@/utils/axios'
 import { defineStore } from 'pinia'
-import { toast } from '@/utils/toast'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -8,13 +7,12 @@ export const useAuthStore = defineStore('auth', {
     errors: {},
     token: null,
     user: null,
-    stores: [],
     store: null,
   }),
 
   // persist: true,
   persist: {
-    pick: ['token', 'user', 'store', 'stores'],
+    pick: ['token', 'user', 'store'],
   },
 
   getters: {
@@ -29,21 +27,23 @@ export const useAuthStore = defineStore('auth', {
 
     async login(formData) {
       this.loading = true
+
       try {
         const response = await apiClient.post('/api/auth/login', formData)
+
         if (response.status === 200) {
           this.token = response.data.token
-          this.stores = response.data.stores
-          this.store = this.stores.find((store) => store.default === true)
-          toast.success(response.data.message)
-          window.location.href = '/'
-          return Promise.resolve(response)
+          this.store = response.data.store
         }
+
+        return response
       } catch (error) {
         if (error.response) {
           this.errors = error.response.data.errors
+          throw error.response
         }
-        return Promise.reject(error.response)
+
+        throw error
       } finally {
         this.loading = false
       }

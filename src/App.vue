@@ -1,10 +1,7 @@
-<script setup>
-import BaseToast from './components/BaseToast.vue'
-</script>
+<script setup></script>
 
 <template>
   <UApp>
     <RouterView />
-    <BaseToast />
   </UApp>
 </template>

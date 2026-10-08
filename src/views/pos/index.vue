@@ -21,6 +21,8 @@ const cartStore = useCartStore()
 const customerStore = useCustomerStore()
 const saleStore = useSaleStore()
 
+const toast = useToast()
+
 const { categories } = storeToRefs(categoryStore)
 const { brands } = storeToRefs(brandStore)
 const { products } = storeToRefs(productStore)
@@ -40,20 +42,8 @@ const loadProducts = async () => {
 }
 
 const loadCart = async () => {
-  await cartStore.index()
+  await cartStore.getCart()
 }
-
-const loadCustomers = async () => {
-  await customerStore.all()
-}
-
-onMounted(() => {
-  loadCategories()
-  loadBrands()
-  loadProducts()
-  loadCart()
-  loadCustomers()
-})
 
 const search = reactive({
   category_id: '',
@@ -77,7 +67,7 @@ const customer = reactive({
 const addCustomer = async (close) => {
   await customerStore.store(customer)
   close()
-  await loadCustomers()
+  await customerStore.all()
 }
 
 const form = reactive({
@@ -88,7 +78,7 @@ const form = reactive({
 
 const discount = reactive({
   amount: '',
-  type: 'fixed',
+  type: 'percent',
 })
 
 const addDiscount = async () => {
@@ -105,7 +95,495 @@ const addShipping = async (close) => {
 }
 
 const placeOrder = async () => {
-  await saleStore.store(form)
+  try {
+    const response = await saleStore.store(form)
+
+    console.log(response.data?.data)
+
+    // cartStore.$reset()
+    // await cartStore.getCart()
+
+    toast.add({
+      title: response.data.message,
+      color: 'success',
+    })
+    // Print invoice after successful order
+    printInvoice(response.data.data)
+  } catch (error) {
+    if (error.data) {
+      toast.add({
+        title: error.data?.message,
+        color: 'error',
+      })
+    }
+  }
+}
+
+onMounted(async () => {
+  loadCategories()
+  loadBrands()
+  loadProducts()
+  loadCart()
+  await customerStore.all()
+
+  form.customer_id = customerStore.customer?.id ?? null
+})
+
+const printInvoice = (sale) => {
+  const printWindow = window.open('', '_blank', 'width=800,height=700,resizable=yes,scrollbars=yes')
+
+  if (!printWindow) {
+    alert('Popup blocked. Please allow popups for this site.')
+    return
+  }
+
+  printWindow.document.open()
+
+  printWindow.document.write(`
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Invoice #${sale.invoice_no}</title>
+      <meta charset="UTF-8">
+
+      <style>
+        * {
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          background: #fff;
+        }
+
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+          color: #111;
+          font-size: 12px;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        th,
+        td {
+          padding: 7px 0;
+          border-bottom: 1px dashed #ccc;
+        }
+
+        th {
+          color: #555;
+          font-size: 11px;
+        }
+
+        th:first-child,
+        td:first-child {
+          text-align: left;
+        }
+
+        th:nth-child(2),
+        td:nth-child(2) {
+          text-align: center;
+          width: 45px;
+        }
+
+        th:last-child,
+        td:last-child {
+          text-align: right;
+        }
+
+        @media print {
+          @page {
+            margin: 0;
+          }
+
+          body {
+            padding: 0;
+          }
+        }
+      </style>
+    </head>
+
+    <body>
+
+      <div
+        style="
+          width: 100%;
+          max-width: 380px;
+          margin: 0 auto;
+          padding: 20px;
+        "
+      >
+
+        <!-- Header -->
+        <div
+          style="
+            text-align: center;
+            margin-bottom: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #ccc;
+          "
+        >
+          <h2
+            style="
+              margin: 0 0 6px;
+              font-size: 20px;
+              line-height: 1.2;
+              font-weight: 700;
+              color: #111;
+            "
+          >
+            ${sale.store.name}
+          </h2>
+
+          ${
+            sale.store.address
+              ? `
+                <p
+                  style="
+                    margin: 0 0 4px;
+                    color: #555;
+                    font-size: 11px;
+                    line-height: 1.5;
+                  "
+                >
+                  ${[sale.store.address, sale.store.city, sale.store.state, sale.store.postcode]
+                    .filter(Boolean)
+                    .join(', ')}
+                </p>
+              `
+              : ''
+          }
+
+          ${
+            sale.store.phone
+              ? `
+                <p
+                  style="
+                    margin: 3px 0;
+                    color: #555;
+                    font-size: 11px;
+                  "
+                >
+                  Phone: ${sale.store.phone}
+                </p>
+              `
+              : ''
+          }
+
+          ${
+            sale.store.email
+              ? `
+                <p
+                  style="
+                    margin: 3px 0;
+                    color: #555;
+                    font-size: 11px;
+                  "
+                >
+                  ${sale.store.email}
+                </p>
+              `
+              : ''
+          } 
+        </div>
+
+        <!-- Customer Info -->
+        <div style="margin-bottom: 15px;">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              gap: 15px;
+              margin-bottom: 6px;
+            "
+          >
+            <span style="color: #666;">
+              Customer
+            </span>
+
+            <strong>
+              ${sale.customer.name ?? 'Walk-in'}
+            </strong>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              gap: 15px;
+              margin-bottom: 6px;
+            "
+          >
+            <span style="color: #666;">
+              Phone
+            </span>
+
+            <span>
+              01712-345678
+            </span>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              gap: 15px;
+              margin-bottom: 6px;
+            "
+          >
+            <span style="color: #666;">
+              Payment
+            </span>
+
+            <strong>
+              Cash
+            </strong>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              gap: 15px;
+              margin-bottom: 6px;
+            "
+          >
+            <span style="color: #666;">
+              Date
+            </span>
+
+            <span>
+              08 Oct 2026, 10:01 PM
+            </span>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              gap: 15px;
+              margin-bottom: 6px;
+            "
+          >
+            <span style="color: #666;">
+              Invoice
+            </span>
+
+            <span>
+              #${sale.invoice_no}
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Items -->
+        <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+          <thead>
+            <tr>
+              <th style="
+                text-align: left;
+                padding: 6px 0;
+                border-bottom: 1px solid #ddd;
+                font-size: 11px;
+              ">
+                Item
+              </th>
+
+              <th style="
+                width: 45px;
+                text-align: center;
+                padding: 6px 0;
+                border-bottom: 1px solid #ddd;
+                font-size: 11px;
+              ">
+                Qty
+              </th>
+
+              <th style="
+                width: 70px;
+                text-align: right;
+                padding: 6px 0;
+                border-bottom: 1px solid #ddd;
+                font-size: 11px;
+              ">
+                Total
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${sale.items
+              .map(
+                (item) => `
+                  <tr>
+                    <td style="
+                      padding: 7px 0;
+                      vertical-align: top;
+                    ">
+                      <span style="
+                        display: block;
+                        font-weight: 600;
+                        font-size: 11px;
+                        line-height: 1.3;
+                      ">
+                        ${item.name}
+                      </span>
+
+                      <span style="
+                        display: block;
+                        margin-top: 2px;
+                        font-size: 9px;
+                        color: #777;
+                      ">
+                        ${item.sku}
+                      </span>
+                    </td>
+
+                    <td style="
+                      padding: 7px 0;
+                      text-align: center;
+                      vertical-align: top;
+                      font-size: 11px;
+                      white-space: nowrap;
+                    ">
+                      ${Math.round(Number(item.price))} x ${item.quantity}
+                    </td>
+
+                    <td style="
+                      padding: 7px 0;
+                      text-align: right;
+                      vertical-align: top;
+                      font-size: 11px;
+                      font-weight: 600;
+                    ">
+                      ${item.total}
+                    </td>
+                  </tr>
+                `,
+              )
+              .join('')}
+          </tbody>
+        </table>
+
+
+        <div style="margin-top: 15px;">
+          <div style="margin-bottom: 6px;">
+            <span style="display: inline-block; width: 49%;">Subtotal</span>
+            <span style="
+              display: inline-block;
+              width: 49%;
+              text-align: right;
+            ">${sale.subtotal}</span>
+          </div>
+
+          <div style="margin-bottom: 6px;">
+            <span style="display: inline-block; width: 49%;">Discount</span>
+            <span style="
+              display: inline-block;
+              width: 49%;
+              text-align: right;
+            ">${sale.discount}</span>
+          </div>
+
+          <div style="margin-bottom: 6px;">
+            <span style="display: inline-block; width: 49%;">Tax</span>
+            <span style="
+              display: inline-block;
+              width: 49%;
+              text-align: right;
+            ">${sale.tax}</span>
+          </div>
+
+          <div style="margin-bottom: 6px;">
+            <span style="display: inline-block; width: 49%;">Shipping</span>
+            <span style="
+              display: inline-block;
+              width: 49%;
+              text-align: right;
+            ">${sale.shipping}</span>
+          </div>
+
+          <div style="
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #777;
+            font-size: 14px;
+            font-weight: 700;
+          ">
+            <span style="display: inline-block; width: 49%;">Total</span>
+            <span style="
+              display: inline-block;
+              width: 49%;
+              text-align: right;
+            ">${sale.total}</span>
+          </div>
+
+          <div style="margin-top: 6px;">
+            <span style="display: inline-block; width: 49%;">Paid</span>
+            <span style="
+              display: inline-block;
+              width: 49%;
+              text-align: right;
+            ">${sale.payable}</span>
+          </div>
+
+          <div style="
+            margin-top: 6px;
+            color: #c62828;
+          ">
+            <span style="display: inline-block; width: 49%;">Due</span>
+            <span style="
+              display: inline-block;
+              width: 49%;
+              text-align: right;
+            ">${sale.due_amount}</span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div
+          style="
+            margin-top: 25px;
+            padding-top: 12px;
+            border-top: 1px dashed #ccc;
+            text-align: center;
+          "
+        >
+          <p
+            style="
+              margin: 4px 0;
+              color: #111;
+              font-weight: 600;
+            "
+          >
+            Thank you for your purchase!
+          </p>
+
+          <p
+            style="
+              margin: 4px 0;
+              color: #666;
+            "
+          >
+            Powered by Gazi Sports
+          </p>
+        </div>
+      </div>
+    </body>
+  </html>
+`)
+
+  printWindow.document.close()
+
+  printWindow.onload = () => {
+    printWindow.focus()
+    printWindow.print()
+  }
 }
 </script>
 
@@ -115,70 +593,37 @@ const placeOrder = async () => {
       <section class="flex min-h-0 min-w-0 flex-col rounded-xl bg-white">
         <header class="sticky top-0 z-10 rounded-t-xl border-b bg-white">
           <div class="flex items-center justify-between gap-3 px-4 py-3">
-            <UDropdownMenu
-              :items="
-                authStore.stores.map((store) => ({
-                  ...store,
-                  onSelect: () => authStore.setStore(store),
-                }))
-              "
-              :popper="{ placement: 'bottom-end' }"
-            >
-              <button type="button" class="flex items-center gap-2 transition hover:bg-slate-50">
-                <span
-                  class="flex size-10 items-center justify-center rounded bg-violet-50 text-primary"
-                >
-                  <UIcon name="i-lucide-store" class="size-8" />
+            <div v-if="authStore.store" class="">
+              <div class="flex w-full items-center gap-2">
+                <UIcon name="i-lucide-store" class="size-4 text-body" />
+
+                <span class="flex-1 truncate">
+                  {{ authStore.store?.name }}
                 </span>
-
-                <span class="hidden text-left sm:block">
-                  <span class="block text-sm font-normal text-body"> Store </span>
-
-                  <span class="block max-w-32 truncate text-xs font-medium text-slate-700">
-                    {{ authStore.store?.name }}
-                  </span>
-                </span>
-
-                <UIcon name="i-lucide-chevron-down" class="size-4 text-body" />
-              </button>
-
-              <template #item="{ item }">
-                <div class="flex w-full items-center gap-2">
-                  <UIcon name="i-lucide-store" class="size-4 text-body" />
-
-                  <span class="flex-1 truncate">
-                    {{ item.name }}
-                  </span>
-
-                  <UIcon
-                    v-if="authStore.store?.id === item.id"
-                    name="i-lucide-check"
-                    class="size-4 text-primary"
-                  />
-                </div>
-              </template>
-            </UDropdownMenu>
+              </div>
+            </div>
 
             <div class="flex items-center gap-2">
               <RouterLink
-                :to="{ name: 'dashboard' }"
+                :to="{ name: 'home' }"
                 class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
               >
                 <UIcon name="i-lucide-house" class="size-4" />
                 <span class="hidden sm:inline">Home</span>
               </RouterLink>
 
-              <button
-                type="button"
-                class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
-              >
-                <UIcon name="i-lucide-file-pen-line" class="size-4" />
-                <span class="hidden sm:inline">Draft</span>
-              </button>
+              <DraftSales />
 
               <RecentSales />
 
-              <DraftSales />
+              <button
+                type="button"
+                @click="cartStore.reset"
+                class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+              >
+                <UIcon name="i-lucide-pause-circle" class="size-4" />
+                <span class="hidden sm:inline">Hold</span>
+              </button>
             </div>
           </div>
         </header>
@@ -229,7 +674,102 @@ const placeOrder = async () => {
         class="sticky top-2 flex min-h-0 max-h-[calc(100dvh-1rem)] flex-col rounded-xl bg-white px-4 py-2.5"
       >
         <header class="shrink-0 border-b border-border py-2.5">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center justify-between gap-2">
+            <UModal
+              title="Select Customer"
+              description="Search and select a customer"
+              :close="{
+                color: 'primary',
+                variant: 'outline',
+                class: 'rounded-full',
+              }"
+              :ui="{
+                content: 'z-30 sm:max-w-xl',
+              }"
+            >
+              <button
+                type="button"
+                class="flex w-full items-center gap-2.5 rounded text-left transition hover:bg-slate-50"
+              >
+                <div
+                  class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10"
+                >
+                  <UIcon name="i-lucide-user-round" class="size-4 text-primary" />
+                </div>
+
+                <div class="min-w-0 flex-1">
+                  <h3 class="truncate text-sm font-semibold text-heading">
+                    {{ customerStore.customer?.name ?? 'Loading ...' }}
+                  </h3>
+                  <span class="mt-0.5 block text-xs text-body">
+                    {{ customerStore.customer?.phone ?? 'N/A' }}
+                  </span>
+                </div>
+              </button>
+
+              <template #body>
+                <div class="space-y-4">
+                  <UInput
+                    icon="i-lucide-search"
+                    placeholder="Search customer name or phone..."
+                    autofocus
+                    class="w-full"
+                  />
+
+                  <div class="max-h-80 overflow-y-auto">
+                    <div class="space-y-1">
+                      <button
+                        v-for="customer in customers.data"
+                        :key="customer.id"
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-slate-50"
+                        :class="{
+                          'bg-primary/5': form.customer_id === customer.id,
+                        }"
+                        @click="selectCustomer(customer)"
+                      >
+                        <div class="flex min-w-0 items-center gap-3">
+                          <div
+                            class="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100"
+                          >
+                            <UIcon name="i-lucide-user" class="size-4 text-slate-500" />
+                          </div>
+
+                          <div class="min-w-0">
+                            <p class="truncate text-sm font-medium text-slate-700">
+                              {{ customer.name }}
+                            </p>
+
+                            <p class="truncate text-xs text-slate-400">
+                              {{ customer.phone }}
+                            </p>
+                          </div>
+                        </div>
+
+                        <UIcon
+                          v-if="form.customer_id === customer.id"
+                          name="i-lucide-check"
+                          class="size-4 shrink-0 text-primary"
+                        />
+                      </button>
+
+                      <!-- Empty -->
+                      <div v-if="!customers.data?.length" class="py-8 text-center">
+                        <UIcon
+                          name="i-lucide-users-round"
+                          class="mx-auto mb-2 size-8 text-slate-300"
+                        />
+
+                        <p class="text-sm font-medium text-slate-500">No customer found</p>
+
+                        <p class="mt-1 text-xs text-slate-400">Try another name or phone number</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </UModal>
+
             <UModal
               title="Add Customer"
               description="Create a new customer profile"
@@ -239,12 +779,12 @@ const placeOrder = async () => {
                 class: 'rounded-full',
               }"
               :ui="{
-                content: 'z-30 sm:max-w-xl mb-16',
+                content: 'z-30 sm:max-w-xl',
               }"
             >
               <button
                 type="button"
-                class="flex shrink-0 items-center justify-center rounded-md border border-slate-200 p-2 text-slate-500 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
+                class="flex shrink-0 items-center justify-center rounded-md bg-primary p-2 text-white transition hover:bg-primary/90 focus:outline-none"
                 title="Add Customer"
               >
                 <UIcon name="i-lucide-user-plus" class="size-4" />
@@ -356,26 +896,12 @@ const placeOrder = async () => {
                 </div>
               </template>
             </UModal>
-
-            <USelectMenu
-              v-model="form.customer_id"
-              value-key="value"
-              icon="i-lucide-search"
-              :items="
-                customers.data?.map((customer) => ({
-                  label: `${customer.name} - ${customer.phone}`,
-                  value: customer.id,
-                }))
-              "
-              placeholder="Walk-in Customer"
-              class="min-w-0 flex-1"
-            />
           </div>
         </header>
 
         <div class="min-h-0 flex-1 overflow-y-auto py-2 scrollbar-none">
           <div class="space-y-1">
-            <template v-if="cart">
+            <template v-if="cart?.items?.length">
               <article
                 v-for="item in cart.items"
                 :key="item.id"
@@ -413,6 +939,8 @@ const placeOrder = async () => {
                     <div class="inline-flex items-center">
                       <button
                         type="button"
+                        @click="cartStore.decrement(item.id)"
+                        :disabled="item.quantity <= 1"
                         class="flex size-7 items-center justify-center text-slate-500 transition hover:bg-slate-50 hover:text-red-500"
                       >
                         <UIcon name="i-lucide-minus" class="size-3.5" />
@@ -426,6 +954,7 @@ const placeOrder = async () => {
 
                       <button
                         type="button"
+                        @click="cartStore.increment(item.id)"
                         class="flex size-7 items-center justify-center transition hover:bg-slate-50 hover:text-emerald-600"
                       >
                         <UIcon name="i-lucide-plus" class="size-3.5" />
@@ -473,8 +1002,8 @@ const placeOrder = async () => {
                 v-model="discount.type"
                 class="absolute right-1 top-1/2 -translate-y-1/2 cursor-pointer rounded text-xs text-muted font-medium outline-none appearance"
               >
-                <option value="fixed">Fixed</option>
                 <option value="percent">Percent</option>
+                <option value="fixed">Fixed</option>
               </select>
             </div>
 
@@ -490,19 +1019,19 @@ const placeOrder = async () => {
             <div class="flex items-center justify-between text-sm">
               <span class="text-body">Subtotal</span>
               <span class="text-body">
-                {{ $currency(cartStore.cart?.subtotal) }}
+                {{ $currency(cartStore.cart?.subtotal ?? 0) }}
               </span>
             </div>
 
             <div class="flex items-center justify-between text-sm">
               <span class="text-body">Discount</span>
-              <span class="text-danger"> - {{ $currency(cartStore.cart?.discount) }} </span>
+              <span class="text-danger"> - {{ $currency(cartStore.cart?.discount ?? 0) }} </span>
             </div>
 
             <div class="flex items-center justify-between text-sm">
               <span class="text-body"> Tax </span>
               <span class="text-body">
-                {{ $currency(cartStore.cart?.tax) }}
+                {{ $currency(cartStore.cart?.tax ?? 0) }}
               </span>
             </div>
 
@@ -551,14 +1080,14 @@ const placeOrder = async () => {
               </div>
 
               <span class="text-body">
-                {{ $currency(cartStore.cart?.shipping) }}
+                {{ $currency(cartStore.cart?.shipping ?? 0) }}
               </span>
             </div>
 
             <div class="flex items-center justify-between">
               <span class="text-sm font-bold text-body"> Grand Total </span>
               <span class="text-base font-bold text-primary">
-                {{ $currency(cartStore.cart?.total) }}
+                {{ $currency(cartStore.cart?.total ?? 0) }}
               </span>
             </div>
           </div>

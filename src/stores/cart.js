@@ -15,7 +15,7 @@ export const useCartStore = defineStore('cart', {
   getters: {},
 
   actions: {
-    async index() {
+    async getCart() {
       try {
         const response = await apiClient.get('/api/cart')
 
@@ -49,6 +49,43 @@ export const useCartStore = defineStore('cart', {
         }
       } finally {
         this.loading = false
+      }
+    },
+
+    async increment(item) {
+      try {
+        const response = await apiClient.post(`/api/cart/items/${item}/increment`)
+
+        await this.getCart()
+
+        return response
+      } catch (error) {
+        throw error.response
+      }
+    },
+
+    async decrement(item) {
+      try {
+        const response = await apiClient.post(`/api/cart/items/${item}/decrement`)
+
+        await this.getCart()
+
+        return response
+      } catch (error) {
+        throw error.response
+      }
+    },
+
+    async remove(item) {
+      try {
+        const response = await apiClient.delete(`/api/cart/items/${item}`)
+        await this.getCart()
+
+        return response
+      } catch (error) {
+        if (error.reponse) {
+          throw error.response
+        }
       }
     },
 
@@ -92,7 +129,7 @@ export const useCartStore = defineStore('cart', {
       this.loading = true
       try {
         this.cart = null
-        return await this.index()
+        return await this.getCart()
       } catch (error) {
         throw error
       } finally {

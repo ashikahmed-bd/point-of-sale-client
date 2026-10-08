@@ -1,27 +1,15 @@
 <script setup>
-const sales = [
-  {
-    id: 'SALE-1024',
-    customer: 'Ashik',
-    items: 3,
-    total: 2450,
-    date: '10:42 AM',
-  },
-  {
-    id: 'SALE-1023',
-    customer: 'Walk-in Customer',
-    items: 2,
-    total: 1200,
-    date: '10:15 AM',
-  },
-  {
-    id: 'SALE-1022',
-    customer: 'Rahim',
-    items: 5,
-    total: 4850,
-    date: '09:38 AM',
-  },
-]
+import { useSaleStore } from '@/stores/sale'
+import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
+
+const saleStore = useSaleStore()
+
+const { sales } = storeToRefs(saleStore)
+
+onMounted(async () => {
+  await saleStore.getRecentSales()
+})
 </script>
 
 <template>
@@ -55,28 +43,75 @@ const sales = [
               <th>Items</th>
               <th>Total</th>
               <th>Date</th>
-              <th></th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th class="text-right">Action</th>
             </tr>
           </thead>
 
           <tbody>
-            <tr v-for="sale in sales" :key="sale.id">
-              <td class="font-medium text-body">#{{ sale.id }}</td>
-
+            <tr v-for="sale in sales.data" :key="sale.id">
               <td>
-                {{ sale.customer }}
+                <div class="font-medium text-body">#{{ sale.invoice_no }}</div>
+                <div class="mt-0.5 text-xs text-muted">
+                  {{ sale.account?.name }}
+                </div>
               </td>
 
-              <td>{{ sale.items }} Items</td>
+              <td>
+                <div class="font-medium text-body">
+                  {{ sale.customer?.name ?? 'Walk-in Customer' }}
+                </div>
 
-              <td class="font-semibold text-body">৳{{ sale.total.toLocaleString() }}</td>
+                <div v-if="sale.customer?.phone" class="text-xs text-muted">
+                  {{ sale.customer.phone }}
+                </div>
+              </td>
 
               <td>
-                {{ sale.date }}
+                <span class="text-sm text-body">
+                  {{ sale.items?.length ?? 0 }}
+                </span>
+
+                <span class="ml-1 text-sm text-muted">
+                  {{ (sale.items?.length ?? 0) === 1 ? 'Item' : 'Items' }}
+                </span>
+              </td>
+
+              <td>
+                <div class="font-semibold text-body">
+                  {{ $currency(sale.total) }}
+                </div>
+
+                <div v-if="Number(sale.due_amount) > 0" class="text-xs text-error">
+                  Due {{ $currency(sale.due_amount) }}
+                </div>
+              </td>
+
+              <td>
+                <span class="text-sm text-body">
+                  {{ $date(sale.created_at) }}
+                </span>
+              </td>
+              <td>
+                <span class="text-xs text-muted">
+                  {{ sale.payment }}
+                </span>
+              </td>
+              <td>
+                <span class="text-xs text-muted">
+                  {{ sale.status }}
+                </span>
               </td>
 
               <td class="text-right">
-                <UButton size="sm" color="primary" variant="soft" label="View" />
+                <UButton
+                  size="sm"
+                  color="primary"
+                  variant="soft"
+                  icon="i-lucide-eye"
+                  label="View"
+                />
               </td>
             </tr>
           </tbody>

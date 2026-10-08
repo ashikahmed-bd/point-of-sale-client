@@ -41,8 +41,8 @@ const drafts = [
       type="button"
       class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
     >
-      <UIcon name="i-lucide-pause-circle" class="size-4" />
-      <span>Hold</span>
+      <UIcon name="i-lucide-file-pen-line" class="size-4" />
+      <span>Draft</span>
     </button>
 
     <template #body>

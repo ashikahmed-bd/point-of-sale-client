@@ -4,8 +4,11 @@ import BaseButton from '@/components/BaseButton.vue'
 import BaseInput from '@/components/BaseInput.vue'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
+const toast = useToast()
+const router = useRouter()
 
 const { errors } = storeToRefs(authStore)
 
@@ -15,7 +18,25 @@ const form = reactive({
 })
 
 const submit = async () => {
-  await authStore.login(form)
+  try {
+    const response = await authStore.login(form)
+
+    toast.add({
+      title: response.data.message,
+      color: 'success',
+    })
+
+    await router.push({
+      name: 'home',
+    })
+  } catch (error) {
+    if (error.data) {
+      toast.add({
+        title: error.data?.message,
+        color: 'error',
+      })
+    }
+  }
 }
 </script>
 
@@ -68,7 +89,7 @@ const submit = async () => {
 
         <p class="text-sm text-center mt-6">
           Don’t have an account?
-          <RouterLink to="/register" class="text-primary font-semibold"> Sign up </RouterLink>
+          <RouterLink to="/" class="text-primary font-semibold"> Sign up </RouterLink>
         </p>
       </div>
     </div>

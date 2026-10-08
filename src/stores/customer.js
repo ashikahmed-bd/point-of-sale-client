@@ -6,6 +6,7 @@ export const useCustomerStore = defineStore('customer', {
     loading: false,
     errors: {},
     customers: [],
+    customer: null,
   }),
 
   getters: {},
@@ -18,11 +19,15 @@ export const useCustomerStore = defineStore('customer', {
 
         if (response.status === 200) {
           this.customers = response.data
-          return Promise.resolve(response.data)
+
+          this.customer =
+            this.customers.data?.find((customer) => customer.name === 'Walk-in Customer') ?? null
+
+          return response.data
         }
       } catch (error) {
         if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors)
+          throw error.reponse
         }
       } finally {
         this.loading = false

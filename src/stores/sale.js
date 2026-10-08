@@ -1,6 +1,5 @@
 import apiClient from '@/utils/axios'
 import { defineStore } from 'pinia'
-import { toast } from '@/utils/toast'
 
 export const useSaleStore = defineStore('sale', {
   state: () => ({
@@ -33,17 +32,26 @@ export const useSaleStore = defineStore('sale', {
     async store(payload) {
       this.loading = true
       try {
-        const response = await apiClient.post('/api/sales', payload)
-        if (response.status === 201) {
-          toast.success(response.data.message)
-          return Promise.resolve(response.data)
-        }
+        return await apiClient.post('/api/sales', payload)
       } catch (error) {
-        if (error.reponse) {
-          return Promise.reject(error.reponse?.data?.errors)
+        if (error.response) {
+          this.errors = error.response.data.errors
+          throw error.response
         }
+
+        throw error
       } finally {
         this.loading = false
+      }
+    },
+
+    async getRecentSales() {
+      try {
+        const response = await apiClient.get('/api/sales/recent')
+        this.sales = response.data
+        return response
+      } catch (error) {
+        throw error.response || error
       }
     },
   },

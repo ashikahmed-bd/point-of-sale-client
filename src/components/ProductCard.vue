@@ -12,7 +12,7 @@ const props = defineProps({
 
 const addToCart = async (product) => {
   await cartStore.add(product)
-  await cartStore.index()
+  await cartStore.getCart()
 
   const audio = new Audio('/pos.wav')
   await audio.play()

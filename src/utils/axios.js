@@ -1,9 +1,10 @@
+import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
-import axios from 'axios'
+import router from '@/router'
 
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // http://127.0.0.1:8000
+  baseURL: 'http://127.0.0.1:8000',
   withCredentials: false,
 })
 
@@ -13,43 +14,53 @@ apiClient.interceptors.request.use(
     const authStore = useAuthStore()
     const cartStore = useCartStore()
 
+    // Auth token
     if (authStore.token) {
-      config.headers['Authorization'] = `Bearer ${authStore.token}`
-      config.headers['X-Store-ID'] = authStore.store?.id ?? null
+      config.headers.Authorization = `Bearer ${authStore.token}`
     }
 
+    // Cart token
     if (cartStore.cart?.token) {
-      config.headers['X-Cart-Token'] = cartStore.cart?.token
+      config.headers['X-Cart-Token'] = cartStore.cart.token
     }
 
     return config
   },
-  (error) => Promise.reject(error),
+  (error) => {
+    return Promise.reject(error)
+  },
 )
 
 // Response interceptor
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response
+  },
+
   async (error) => {
-    // If server returned a response (401, 422, 500 etc.)
+    // Server returned a response
     if (error.response) {
-      if (error.response.status === 401) {
-        // Logout user
+      const status = error.response.status
+
+      // Unauthorized
+      if (status === 401) {
         const authStore = useAuthStore()
+
+        // Clear authentication state
         authStore.$reset()
 
-        // DO NOT return navigateTo — reject error so catch() works
-        window.location.href = '/login'
+        // Redirect to login
+        await router.push('/login')
 
-        // send the error to catch()
+        // Keep the original error for caller's catch()
         return Promise.reject(error)
       }
 
-      // For all other errors → pass to catch()
+      // Validation error, forbidden, not found, server error etc.
       return Promise.reject(error)
     }
 
-    // If no response (network error etc.)
+    // Network / connection error
     return Promise.reject(error)
   },
 )
