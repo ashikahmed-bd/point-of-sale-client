@@ -40,7 +40,7 @@ const dateRange = computed(() => {
 
 <template>
   <Default>
-    <main>
+    <main class="space-y-4">
       <section class="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">

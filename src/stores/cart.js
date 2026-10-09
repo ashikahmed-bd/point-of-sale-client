@@ -4,8 +4,10 @@ import { defineStore } from 'pinia'
 export const useCartStore = defineStore('cart', {
   state: () => ({
     loading: false,
+    holding: false,
     errors: {},
     cart: null,
+    draft: false,
   }),
 
   persist: {
@@ -136,5 +138,29 @@ export const useCartStore = defineStore('cart', {
         this.loading = false
       }
     },
+
+    async holdCart(customer) {
+      if (!this.cart?.items?.length) {
+        throw new Error('Cannot hold an empty cart.')
+      }
+
+      this.holding = true
+      try {
+        const response = await apiClient.post('/api/sales/hold', {
+          customer_id: customer ?? null,
+        })
+
+        this.$reset()
+        await this.getCart()
+
+        return response.data
+      } catch (error) {
+        throw error
+      } finally {
+        this.holding = false
+      }
+    },
+
+    async resumeDraft() {},
   },
 })

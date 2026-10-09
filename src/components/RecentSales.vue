@@ -5,7 +5,7 @@ import { onMounted } from 'vue'
 
 const saleStore = useSaleStore()
 
-const { sales } = storeToRefs(saleStore)
+const { recent } = storeToRefs(saleStore)
 
 onMounted(async () => {
   await saleStore.getRecentSales()
@@ -50,7 +50,7 @@ onMounted(async () => {
           </thead>
 
           <tbody>
-            <tr v-for="sale in sales.data" :key="sale.id">
+            <tr v-for="sale in recent.data" :key="sale.id">
               <td>
                 <div class="font-medium text-body">#{{ sale.invoice_no }}</div>
                 <div class="mt-0.5 text-xs text-muted">
@@ -94,12 +94,25 @@ onMounted(async () => {
                 </span>
               </td>
               <td>
-                <span class="text-xs text-muted">
+                <span
+                  class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 capitalize"
+                >
                   {{ sale.payment }}
                 </span>
               </td>
+
               <td>
-                <span class="text-xs text-muted">
+                <span
+                  class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize"
+                  :class="{
+                    'bg-green-50 text-green-700': sale.status === 'completed',
+                    'bg-yellow-50 text-yellow-700': sale.status === 'pending',
+                    'bg-red-50 text-red-700': sale.status === 'cancelled',
+                    'bg-gray-100 text-gray-700': !['completed', 'pending', 'cancelled'].includes(
+                      sale.status,
+                    ),
+                  }"
+                >
                   {{ sale.status }}
                 </span>
               </td>

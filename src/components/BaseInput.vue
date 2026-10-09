@@ -1,19 +1,19 @@
 <script setup>
 const props = defineProps({
-  label: { type: String, default: "" },
+  label: { type: String, default: '' },
   modelValue: [String, Number, Date],
-  type: { type: String, default: "text" }, // text, date, select
+  type: { type: String, default: 'text' }, // text, date
   required: { type: Boolean, default: false },
-  placeholder: { type: String, default: "" },
-  error: { type: String, default: "" },
+  placeholder: { type: String, default: '' },
+  error: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
-});
+})
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(['update:modelValue'])
 
 const updateValue = (e) => {
-  emit("update:modelValue", e.target.value);
-};
+  emit('update:modelValue', e.target.value)
+}
 </script>
 
 <template>

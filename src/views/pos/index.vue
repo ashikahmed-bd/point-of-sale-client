@@ -67,7 +67,6 @@ const customer = reactive({
 const addCustomer = async (close) => {
   await customerStore.store(customer)
   close()
-  await customerStore.all()
 }
 
 const form = reactive({
@@ -94,11 +93,25 @@ const addShipping = async (close) => {
   form.shipping = 0
 }
 
+const holdCart = async () => {
+  try {
+    await cartStore.holdCart(customerStore.customer?.id ?? null)
+
+    toast.add({
+      title: 'Cart hold successfully',
+      color: 'success',
+    })
+  } catch (error) {
+    toast.add({
+      title: error.message ?? 'Failed to hold cart',
+      color: 'error',
+    })
+  }
+}
+
 const placeOrder = async () => {
   try {
     const response = await saleStore.store(form)
-
-    console.log(response.data?.data)
 
     // cartStore.$reset()
     // await cartStore.getCart()
@@ -107,6 +120,7 @@ const placeOrder = async () => {
       title: response.data.message,
       color: 'success',
     })
+
     // Print invoice after successful order
     printInvoice(response.data.data)
   } catch (error) {
@@ -141,441 +155,374 @@ const printInvoice = (sale) => {
 
   printWindow.document.write(`
   <!DOCTYPE html>
-  <html>
-    <head>
-      <title>Invoice #${sale.invoice_no}</title>
-      <meta charset="UTF-8">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice #${sale.invoice_no}</title>
 
-      <style>
-        * {
-          box-sizing: border-box;
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        color: #111;
+        font-size: 12px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+      }
+
+      th,
+      td {
+        padding: 4px 0;
+        vertical-align: top;
+      }
+
+      p {
+        margin: 4px 0;
+      }
+
+      th {
+        color: #555;
+        font-size: 11px;
+        font-weight: 600;
+        border-bottom: 1px solid #ddd;
+      }
+
+      @media print {
+        @page {
+          margin: 0;
         }
 
         html,
         body {
           margin: 0;
           padding: 0;
-          background: #fff;
         }
+      }
+    </style>
+  </head>
 
-        body {
-          font-family: Arial, Helvetica, sans-serif;
-          color: #111;
-          font-size: 12px;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        th,
-        td {
-          padding: 7px 0;
-          border-bottom: 1px dashed #ccc;
-        }
-
-        th {
-          color: #555;
-          font-size: 11px;
-        }
-
-        th:first-child,
-        td:first-child {
-          text-align: left;
-        }
-
-        th:nth-child(2),
-        td:nth-child(2) {
-          text-align: center;
-          width: 45px;
-        }
-
-        th:last-child,
-        td:last-child {
-          text-align: right;
-        }
-
-        @media print {
-          @page {
-            margin: 0;
-          }
-
-          body {
-            padding: 0;
-          }
-        }
-      </style>
-    </head>
-
-    <body>
-
-      <div
-        style="
-          width: 100%;
-          max-width: 380px;
-          margin: 0 auto;
-          padding: 20px;
-        "
-      >
-
-        <!-- Header -->
-        <div
+  <body>
+    <table style="max-width: 80mm; margin: 0 auto; padding: 20px">
+      <!-- Header -->
+      <tr>
+        <td
+          colspan="4"
           style="
+            padding: 20px 10px 12px;
             text-align: center;
-            margin-bottom: 10px;
-            padding-bottom: 12px;
             border-bottom: 1px dashed #ccc;
           "
         >
-          <h2
+          <p
             style="
-              margin: 0 0 6px;
+              margin: 0 0 4px;
               font-size: 20px;
               line-height: 1.2;
               font-weight: 700;
-              color: #111;
             "
           >
             ${sale.store.name}
-          </h2>
+          </p>
 
           ${
             sale.store.address
               ? `
-                <p
-                  style="
-                    margin: 0 0 4px;
-                    color: #555;
-                    font-size: 11px;
-                    line-height: 1.5;
-                  "
-                >
-                  ${[sale.store.address, sale.store.city, sale.store.state, sale.store.postcode]
-                    .filter(Boolean)
-                    .join(', ')}
-                </p>
-              `
-              : ''
-          }
-
-          ${
-            sale.store.phone
-              ? `
-                <p
-                  style="
-                    margin: 3px 0;
-                    color: #555;
-                    font-size: 11px;
-                  "
-                >
-                  Phone: ${sale.store.phone}
-                </p>
-              `
-              : ''
-          }
-
-          ${
-            sale.store.email
-              ? `
-                <p
-                  style="
-                    margin: 3px 0;
-                    color: #555;
-                    font-size: 11px;
-                  "
-                >
-                  ${sale.store.email}
-                </p>
-              `
-              : ''
-          } 
-        </div>
-
-        <!-- Customer Info -->
-        <div style="margin-bottom: 15px;">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              gap: 15px;
-              margin-bottom: 6px;
-            "
-          >
-            <span style="color: #666;">
-              Customer
-            </span>
-
-            <strong>
-              ${sale.customer.name ?? 'Walk-in'}
-            </strong>
-          </div>
-
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              gap: 15px;
-              margin-bottom: 6px;
-            "
-          >
-            <span style="color: #666;">
-              Phone
-            </span>
-
-            <span>
-              01712-345678
-            </span>
-          </div>
-
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              gap: 15px;
-              margin-bottom: 6px;
-            "
-          >
-            <span style="color: #666;">
-              Payment
-            </span>
-
-            <strong>
-              Cash
-            </strong>
-          </div>
-
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              gap: 15px;
-              margin-bottom: 6px;
-            "
-          >
-            <span style="color: #666;">
-              Date
-            </span>
-
-            <span>
-              08 Oct 2026, 10:01 PM
-            </span>
-          </div>
-
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              gap: 15px;
-              margin-bottom: 6px;
-            "
-          >
-            <span style="color: #666;">
-              Invoice
-            </span>
-
-            <span>
-              #${sale.invoice_no}
-            </span>
-          </div>
-
-        </div>
-
-        <!-- Items -->
-        <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
-          <thead>
-            <tr>
-              <th style="
-                text-align: left;
-                padding: 6px 0;
-                border-bottom: 1px solid #ddd;
-                font-size: 11px;
-              ">
-                Item
-              </th>
-
-              <th style="
-                width: 45px;
-                text-align: center;
-                padding: 6px 0;
-                border-bottom: 1px solid #ddd;
-                font-size: 11px;
-              ">
-                Qty
-              </th>
-
-              <th style="
-                width: 70px;
-                text-align: right;
-                padding: 6px 0;
-                border-bottom: 1px solid #ddd;
-                font-size: 11px;
-              ">
-                Total
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            ${sale.items
-              .map(
-                (item) => `
-                  <tr>
-                    <td style="
-                      padding: 7px 0;
-                      vertical-align: top;
-                    ">
-                      <span style="
-                        display: block;
-                        font-weight: 600;
-                        font-size: 11px;
-                        line-height: 1.3;
-                      ">
-                        ${item.name}
-                      </span>
-
-                      <span style="
-                        display: block;
-                        margin-top: 2px;
-                        font-size: 9px;
-                        color: #777;
-                      ">
-                        ${item.sku}
-                      </span>
-                    </td>
-
-                    <td style="
-                      padding: 7px 0;
-                      text-align: center;
-                      vertical-align: top;
-                      font-size: 11px;
-                      white-space: nowrap;
-                    ">
-                      ${Math.round(Number(item.price))} x ${item.quantity}
-                    </td>
-
-                    <td style="
-                      padding: 7px 0;
-                      text-align: right;
-                      vertical-align: top;
-                      font-size: 11px;
-                      font-weight: 600;
-                    ">
-                      ${item.total}
-                    </td>
-                  </tr>
-                `,
-              )
-              .join('')}
-          </tbody>
-        </table>
-
-
-        <div style="margin-top: 15px;">
-          <div style="margin-bottom: 6px;">
-            <span style="display: inline-block; width: 49%;">Subtotal</span>
-            <span style="
-              display: inline-block;
-              width: 49%;
-              text-align: right;
-            ">${sale.subtotal}</span>
-          </div>
-
-          <div style="margin-bottom: 6px;">
-            <span style="display: inline-block; width: 49%;">Discount</span>
-            <span style="
-              display: inline-block;
-              width: 49%;
-              text-align: right;
-            ">${sale.discount}</span>
-          </div>
-
-          <div style="margin-bottom: 6px;">
-            <span style="display: inline-block; width: 49%;">Tax</span>
-            <span style="
-              display: inline-block;
-              width: 49%;
-              text-align: right;
-            ">${sale.tax}</span>
-          </div>
-
-          <div style="margin-bottom: 6px;">
-            <span style="display: inline-block; width: 49%;">Shipping</span>
-            <span style="
-              display: inline-block;
-              width: 49%;
-              text-align: right;
-            ">${sale.shipping}</span>
-          </div>
-
-          <div style="
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #777;
-            font-size: 14px;
-            font-weight: 700;
-          ">
-            <span style="display: inline-block; width: 49%;">Total</span>
-            <span style="
-              display: inline-block;
-              width: 49%;
-              text-align: right;
-            ">${sale.total}</span>
-          </div>
-
-          <div style="margin-top: 6px;">
-            <span style="display: inline-block; width: 49%;">Paid</span>
-            <span style="
-              display: inline-block;
-              width: 49%;
-              text-align: right;
-            ">${sale.payable}</span>
-          </div>
-
-          <div style="
-            margin-top: 6px;
-            color: #c62828;
-          ">
-            <span style="display: inline-block; width: 49%;">Due</span>
-            <span style="
-              display: inline-block;
-              width: 49%;
-              text-align: right;
-            ">${sale.due_amount}</span>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div
-          style="
-            margin-top: 25px;
-            padding-top: 12px;
-            border-top: 1px dashed #ccc;
-            text-align: center;
-          "
-        >
           <p
             style="
-              margin: 4px 0;
-              color: #111;
-              font-weight: 600;
+              margin: 0 0 4px;
+              color: #555;
+              font-size: 11px;
+              line-height: 1.5;
             "
           >
+            ${[sale.store.address, sale.store.city, sale.store.state, sale.store.postcode]
+              .filter(Boolean)
+              .join(', ')}
+          </p>
+          `
+              : ''
+          } ${
+            sale.store.phone
+              ? `
+          <p style="margin: 3px 0; color: #555; font-size: 11px">
+            Phone: ${sale.store.phone}
+          </p>
+          `
+              : ''
+          } ${
+            sale.store.email
+              ? `
+          <p style="margin: 3px 0; color: #555; font-size: 11px">
+            ${sale.store.email}
+          </p>
+          `
+              : ''
+          }
+        </td>
+      </tr>
+
+      <!-- Invoice -->
+      <tr>
+        <td colspan="4" style="padding: 12px 0; border-bottom: none">
+          <table>
+            <tr>
+              <td style="width: 35%; color: #666">Customer</td>
+              <td style="text-align: right; font-weight: 600">
+                ${sale.customer?.name ?? 'Walk-in'}
+              </td>
+            </tr>
+
+            <tr>
+              <td style="color: #666">Phone</td>
+              <td style="text-align: right">
+                ${sale.customer?.phone ?? 'N/A'}
+              </td>
+            </tr>
+
+            <tr>
+              <td style="color: #666">Payment</td>
+              <td style="text-align: right; font-weight: 600">
+                ${sale.payment_method ?? 'Cash'}
+              </td>
+            </tr>
+
+            <tr>
+              <td style="color: #666">Date</td>
+              <td style="text-align: right">
+                ${
+                  sale.created_at
+                    ? new Date(sale.created_at).toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                      })
+                    : new Date().toLocaleString('en-GB')
+                }
+              </td>
+            </tr>
+
+            <tr>
+              <td style="color: #666">Invoice</td>
+              <td style="text-align: right">#${sale.invoice_no}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Items -->
+      <tr>
+        <td colspan="4" style="padding: 0; border-bottom: none">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align: left">Item</th>
+                <th style="width: 35px; text-align: center">Qty</th>
+                <th style="width: 55px; text-align: center">Tax</th>
+                <th style="width: 75px; text-align: right">Total</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${sale.items
+                .map(
+                  (item) => `
+              <tr>
+                <td
+                  style="padding: 7px 4px 7px 0; border-bottom: 1px dashed #ccc"
+                >
+                  <span
+                    style="
+                      display: block;
+                      font-weight: 600;
+                      font-size: 11px;
+                      line-height: 1.4;
+                    "
+                  >
+                    ${item.name}
+                  </span>
+
+                  <span
+                    style="
+                      display: block;
+                      margin-top: 2px;
+                      font-size: 10px;
+                      color: #666;
+                    "
+                  >
+                    ${item.price} x ${item.quantity}
+                  </span>
+                </td>
+
+                <td
+                  style="
+                    text-align: center;
+                    white-space: nowrap;
+                    border-bottom: 1px dashed #ccc;
+                  "
+                >
+                  ${item.quantity}
+                </td>
+
+                <td
+                  style="
+                    text-align: center;
+                    white-space: nowrap;
+                    border-bottom: 1px dashed #ccc;
+                  "
+                >
+                  ${item.tax}
+                </td>
+
+                <td
+                  style="
+                    text-align: right;
+                    white-space: nowrap;
+                    font-weight: 600;
+                    border-bottom: 1px dashed #ccc;
+                  "
+                >
+                  ${item.total}
+                </td>
+              </tr>
+              `,
+                )
+                .join('')}
+            </tbody>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Summary -->
+      <tr>
+        <td colspan="4" style="padding: 12px 0 0; border-bottom: none">
+          <table>
+            <tr>
+              <td style="padding: 5px 0">Subtotal</td>
+              <td style="padding: 5px 0; text-align: right">
+                ${sale.subtotal ?? 0}
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 5px 0">Discount</td>
+              <td style="padding: 5px 0; text-align: right">
+                - ${sale.discount ?? 0}
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 5px 0">
+                Tax
+                <span style="font-size: 10px; color: #777">
+                  ${sale.tax_rate != null ? `(${sale.tax_rate}%)` : ''}
+                </span>
+              </td>
+              <td style="padding: 5px 0; text-align: right">
+                ${sale.tax ?? 0}
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 5px 0">Shipping</td>
+              <td style="padding: 5px 0; text-align: right">
+                ${sale.shipping ?? 0}
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="2" style="padding: 0; border-bottom: none">
+                <table>
+                  <tr>
+                    <td
+                      style="
+                        padding: 8px 0;
+                        border-top: 1px dashed #777;
+                        font-size: 14px;
+                        font-weight: 700;
+                      "
+                    >
+                      Total
+                    </td>
+                    <td
+                      style="
+                        padding: 8px 0;
+                        text-align: right;
+                        border-top: 1px dashed #777;
+                        font-size: 14px;
+                        font-weight: 700;
+                      "
+                    >
+                      ${sale.total ?? 0}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 5px 0">Paid</td>
+              <td style="padding: 5px 0; text-align: right">
+                ${sale.payable ?? 0}
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 6px 0; color: #c62828; font-weight: 700">
+                Due
+              </td>
+              <td
+                style="
+                  padding: 6px 0;
+                  text-align: right;
+                  color: #c62828;
+                  font-weight: 700;
+                "
+              >
+                ${sale.due_amount ?? 0}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td
+          colspan="4"
+          style="
+            padding: 15px 5px 20px;
+            text-align: center;
+            border-top: 1px dashed #ccc;
+          "
+        >
+          <p style="margin: 4px 0; font-weight: 600">
             Thank you for your purchase!
           </p>
 
-          <p
-            style="
-              margin: 4px 0;
-              color: #666;
-            "
-          >
-            Powered by Gazi Sports
-          </p>
-        </div>
-      </div>
-    </body>
-  </html>
+          <p style="margin: 4px 0; color: #666">Powered by Gazi Sports</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
 `)
 
   printWindow.document.close()
@@ -618,11 +565,16 @@ const printInvoice = (sale) => {
 
               <button
                 type="button"
-                @click="cartStore.reset"
-                class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                @click="holdCart"
+                :disabled="cartStore.holding"
+                class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <UIcon name="i-lucide-pause-circle" class="size-4" />
-                <span class="hidden sm:inline">Hold</span>
+                <UIcon
+                  :name="cartStore.holding ? 'i-lucide-loader' : 'i-lucide-pause-circle'"
+                  class="size-4"
+                  :class="{ 'animate-spin': cartStore.holding }"
+                />
+                <span>Hold</span>
               </button>
             </div>
           </div>
@@ -676,6 +628,7 @@ const printInvoice = (sale) => {
         <header class="shrink-0 border-b border-border py-2.5">
           <div class="flex items-center justify-between gap-2">
             <UModal
+              v-model:open="customerStore.dialog"
               title="Select Customer"
               description="Search and select a customer"
               :close="{
@@ -726,7 +679,7 @@ const printInvoice = (sale) => {
                         :class="{
                           'bg-primary/5': form.customer_id === customer.id,
                         }"
-                        @click="selectCustomer(customer)"
+                        @click="customerStore.selectCustomer(customer)"
                       >
                         <div class="flex min-w-0 items-center gap-3">
                           <div
@@ -817,25 +770,16 @@ const printInvoice = (sale) => {
                       :required="false"
                       error=""
                     />
-
                     <BaseInput
-                      v-model="customer.postcode"
-                      label="Postcode"
-                      placeholder="Enter postcode"
-                      :required="false"
+                      v-model="customer.address"
+                      label="Address"
+                      placeholder="Enter address"
+                      :required="true"
                       error=""
                     />
                   </div>
 
-                  <BaseInput
-                    v-model="customer.address"
-                    label="Address"
-                    placeholder="Enter address"
-                    :required="true"
-                    error=""
-                  />
-
-                  <div class="grid grid-cols-2 gap-3">
+                  <div class="grid grid-cols-3 gap-3">
                     <BaseInput
                       v-model="customer.city"
                       label="City"
@@ -848,6 +792,14 @@ const printInvoice = (sale) => {
                       v-model="customer.state"
                       label="State"
                       placeholder="Enter state"
+                      :required="false"
+                      error=""
+                    />
+
+                    <BaseInput
+                      v-model="customer.postcode"
+                      label="Postcode"
+                      placeholder="Enter postcode"
                       :required="false"
                       error=""
                     />
@@ -873,7 +825,7 @@ const printInvoice = (sale) => {
                     />
                   </div>
 
-                  <BaseTextarea
+                  <BaseInput
                     label="Notes"
                     v-model="customer.notes"
                     placeholder="Add notes..."
@@ -889,6 +841,8 @@ const printInvoice = (sale) => {
 
                   <UButton
                     @click="addCustomer(close)"
+                    :loading="customerStore.loading"
+                    :disabled="customerStore.loading"
                     color="primary"
                     label="Submit"
                     icon="i-lucide-user-plus"

@@ -31,8 +31,8 @@ const navigation = [
         to: '/sales',
       },
       {
-        label: 'Sales Returns',
-        to: '/sales/returns',
+        label: 'Create Sale',
+        to: '/pos',
       },
     ],
   },

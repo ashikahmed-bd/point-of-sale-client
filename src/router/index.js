@@ -39,6 +39,11 @@ const router = createRouter({
       component: () => import('../views/sales/index.vue'),
     },
     {
+      path: '/sales/:id',
+      name: 'sales.view',
+      component: () => import('../views/sales/view.vue'),
+    },
+    {
       path: '/sales/returns',
       name: 'sales.returns',
       component: () => import('../views/sales/returns.vue'),

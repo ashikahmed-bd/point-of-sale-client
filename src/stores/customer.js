@@ -7,11 +7,17 @@ export const useCustomerStore = defineStore('customer', {
     errors: {},
     customers: [],
     customer: null,
+    dialog: false,
   }),
 
   getters: {},
 
   actions: {
+    async selectCustomer(customer) {
+      this.customer = customer
+      this.dialog = false
+    },
+
     async all() {
       this.loading = true
       try {
@@ -40,11 +46,12 @@ export const useCustomerStore = defineStore('customer', {
         const response = await apiClient.post('/api/customers', payload)
 
         if (response.status === 201) {
-          return Promise.resolve(response.data)
+          this.customer = response.data.data
+          return response.data
         }
       } catch (error) {
         if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors)
+          throw error.reponse
         }
       } finally {
         this.loading = false

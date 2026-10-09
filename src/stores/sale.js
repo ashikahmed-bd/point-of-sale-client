@@ -7,6 +7,8 @@ export const useSaleStore = defineStore('sale', {
     errors: {},
     sales: [],
     sale: [],
+    recent: [],
+    drafts: [],
   }),
 
   getters: {},
@@ -45,13 +47,33 @@ export const useSaleStore = defineStore('sale', {
       }
     },
 
+    async show(sale) {
+      try {
+        const response = await apiClient.get(`/api/sales/${sale}`)
+        this.sale = response.data
+        return response.data
+      } catch (error) {
+        throw error.response ?? error
+      }
+    },
+
     async getRecentSales() {
       try {
         const response = await apiClient.get('/api/sales/recent')
-        this.sales = response.data
+        this.recent = response.data
         return response
       } catch (error) {
-        throw error.response || error
+        throw error
+      }
+    },
+
+    async getDraftsSales() {
+      try {
+        const response = await apiClient.get('/api/sales/drafts')
+        this.drafts = response.data
+        return response
+      } catch (error) {
+        throw error
       }
     },
   },

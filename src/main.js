@@ -24,12 +24,25 @@ app.config.globalProperties.$currency = (amount, code = 'BDT') => {
 }
 
 app.config.globalProperties.$date = (date) => {
-  if (!date) return
+  if (!date) return 'N/A'
 
   return new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+  }).format(new Date(date))
+}
+
+app.config.globalProperties.$dateTime = (date) => {
+  if (!date) return 'N/A'
+
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
   }).format(new Date(date))
 }
 
