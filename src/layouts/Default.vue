@@ -50,10 +50,6 @@ const navigation = [
         label: 'New Purchase',
         to: '/purchases/create',
       },
-      {
-        label: 'Purchase Returns',
-        to: '/purchases/returns',
-      },
     ],
   },
 

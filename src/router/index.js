@@ -43,11 +43,6 @@ const router = createRouter({
       name: 'sales.view',
       component: () => import('../views/sales/view.vue'),
     },
-    {
-      path: '/sales/returns',
-      name: 'sales.returns',
-      component: () => import('../views/sales/returns.vue'),
-    },
 
     // Purchases
     {
@@ -61,9 +56,15 @@ const router = createRouter({
       component: () => import('../views/purchases/create.vue'),
     },
     {
-      path: '/purchases/returns',
-      name: 'purchases.returns',
-      component: () => import('../views/purchases/returns.vue'),
+      path: '/purchases/:id',
+      name: 'purchases.view',
+      component: () => import('../views/purchases/view.vue'),
+    },
+
+    {
+      path: '/purchases/:id/edit',
+      name: 'purchases.edit',
+      component: () => import('../views/purchases/edit.vue'),
     },
 
     // Products

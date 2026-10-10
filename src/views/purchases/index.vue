@@ -1,507 +1,322 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { reactive, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import Default from '@/layouts/Default.vue'
+import { usePurchaseStore } from '@/stores/purchase'
 
-const search = ref('')
-const status = ref('all')
-const currentPage = ref(1)
-const perPage = 5
+const purchaseStore = usePurchaseStore()
 
-const purchases = ref([
-  {
-    id: 1,
-    invoice: 'PUR-2026-0148',
-    date: '2026-10-09',
-    supplier: 'Rahman Traders',
-    items: 12,
-    total: 18500,
-    paid: 18500,
-    due: 0,
-    status: 'Paid',
-  },
-  {
-    id: 2,
-    invoice: 'PUR-2026-0147',
-    date: '2026-10-08',
-    supplier: 'Dhaka Wholesale',
-    items: 8,
-    total: 24800,
-    paid: 15000,
-    due: 9800,
-    status: 'Partial',
-  },
-  {
-    id: 3,
-    invoice: 'PUR-2026-0146',
-    date: '2026-10-07',
-    supplier: 'City Distributors',
-    items: 15,
-    total: 32500,
-    paid: 0,
-    due: 32500,
-    status: 'Unpaid',
-  },
-  {
-    id: 4,
-    invoice: 'PUR-2026-0145',
-    date: '2026-10-06',
-    supplier: 'Karim Enterprise',
-    items: 6,
-    total: 12800,
-    paid: 12800,
-    due: 0,
-    status: 'Paid',
-  },
-  {
-    id: 5,
-    invoice: 'PUR-2026-0144',
-    date: '2026-10-05',
-    supplier: 'New Market Supply',
-    items: 10,
-    total: 21400,
-    paid: 10000,
-    due: 11400,
-    status: 'Partial',
-  },
-  {
-    id: 6,
-    invoice: 'PUR-2026-0143',
-    date: '2026-10-04',
-    supplier: 'Rahman Traders',
-    items: 9,
-    total: 15600,
-    paid: 15600,
-    due: 0,
-    status: 'Paid',
-  },
-])
+const { purchases } = storeToRefs(purchaseStore)
 
-const filteredPurchases = computed(() => {
-  const query = search.value.toLowerCase().trim()
-
-  return purchases.value.filter((purchase) => {
-    const matchesSearch =
-      purchase.invoice.toLowerCase().includes(query) ||
-      purchase.supplier.toLowerCase().includes(query)
-
-    const matchesStatus = status.value === 'all' || purchase.status.toLowerCase() === status.value
-
-    return matchesSearch && matchesStatus
-  })
+const filters = reactive({
+  search: '',
+  status: '',
+  page: 1,
 })
 
-const totalPages = computed(() => Math.ceil(filteredPurchases.value.length / perPage))
+const getPurchases = async () => {
+  await purchaseStore.all(filters)
+}
 
-const paginatedPurchases = computed(() => {
-  const start = (currentPage.value - 1) * perPage
-
-  return filteredPurchases.value.slice(start, start + perPage)
+onMounted(() => {
+  getPurchases()
 })
-
-const totalPurchases = computed(() =>
-  purchases.value.reduce((sum, purchase) => sum + purchase.total, 0),
-)
-
-const totalPaid = computed(() => purchases.value.reduce((sum, purchase) => sum + purchase.paid, 0))
-
-const totalDue = computed(() => purchases.value.reduce((sum, purchase) => sum + purchase.due, 0))
-
-const formatCurrency = (amount) =>
-  new Intl.NumberFormat('en-BD', {
-    style: 'currency',
-    currency: 'BDT',
-    minimumFractionDigits: 2,
-  })
-    .format(amount)
-    .replace('BDT', '৳')
-
-const formatDate = (date) =>
-  new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(date))
-
-const statusClass = (value) => {
-  const classes = {
-    Paid: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-    Partial: 'bg-amber-50 text-amber-700 ring-amber-600/20',
-    Unpaid: 'bg-rose-50 text-rose-700 ring-rose-600/20',
-  }
-
-  return classes[value] || 'bg-slate-100 text-slate-600 ring-slate-500/20'
-}
-
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-const resetFilters = () => {
-  search.value = ''
-  status.value = 'all'
-  currentPage.value = 1
-}
 </script>
-
 <template>
   <Default>
-    <main class="p-4">
-      <div class="mx-auto max-w-screen-2xl space-y-6">
-        <!-- Header -->
-        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <main class="space-y-4 p-4">
+      <!-- Header -->
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <div class="mb-2 flex items-center gap-2 text-xs text-slate-500">
+            <span>Dashboard</span>
+            <span>/</span>
+            <span class="text-primary">Purchases</span>
+          </div>
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">Purchases</h1>
+
+          <p class="mt-1 text-sm text-slate-500">
+            Manage your purchase orders and supplier invoices.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          @click="$router.push({ name: 'purchases.create' })"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+        >
+          <UIcon name="i-lucide-plus" class="size-4" />
+          New Purchase
+        </button>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-slate-500">Total Purchases</p>
+            <div
+              class="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600"
+            >
+              <UIcon name="i-lucide-shopping-bag" class="size-5" />
+            </div>
+          </div>
+
+          <h2 class="mt-4 text-2xl font-bold text-slate-900">
+            {{ $currency(250) }}
+          </h2>
+
+          <p class="mt-2 text-xs text-slate-500">
+            {{ purchases.data?.length ?? 0 }} purchase invoices
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-slate-500">Total Paid</p>
+            <div
+              class="flex size-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
+            >
+              <UIcon name="i-lucide-circle-check" class="size-5" />
+            </div>
+          </div>
+
+          <h2 class="mt-4 text-2xl font-bold text-slate-900">
+            {{ $currency(1200) }}
+          </h2>
+
+          <p class="mt-2 text-xs text-emerald-600">Payments completed or received</p>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-slate-500">Total Due</p>
+            <div
+              class="flex size-10 items-center justify-center rounded-lg bg-rose-50 text-rose-600"
+            >
+              <UIcon name="i-lucide-wallet" class="size-5" />
+            </div>
+          </div>
+
+          <h2 class="mt-4 text-2xl font-bold text-slate-900">
+            {{ $currency(1200) }}
+          </h2>
+
+          <p class="mt-2 text-xs text-rose-600">Outstanding supplier balance</p>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-5">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-slate-500">Total Invoices</p>
+            <div
+              class="flex size-10 items-center justify-center rounded-lg bg-violet-50 text-violet-600"
+            >
+              <UIcon name="i-lucide-file-text" class="size-5" />
+            </div>
+          </div>
+
+          <h2 class="mt-4 text-2xl font-bold text-slate-900">
+            {{ purchases.data?.length ?? 0 }}
+          </h2>
+
+          <p class="mt-2 text-xs text-slate-500">All purchase transactions</p>
+        </div>
+      </div>
+
+      <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div
+          class="flex flex-col gap-4 border-b border-slate-200 p-5 xl:flex-row xl:items-center xl:justify-between"
+        >
           <div>
-            <div class="mb-2 flex items-center gap-2 text-xs text-slate-500">
-              <span>Dashboard</span>
-              <span>/</span>
-              <span class="text-primary">Purchases</span>
-            </div>
-
-            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Purchases</h1>
-
-            <p class="mt-1 text-sm text-slate-500">
-              Manage your purchase orders and supplier invoices.
-            </p>
+            <h2 class="text-base font-semibold text-slate-900">Purchase List</h2>
+            <p class="mt-1 text-sm text-slate-500">View and manage all your purchases.</p>
           </div>
 
-          <button
-            type="button"
-            class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-          >
-            <UIcon name="i-lucide-plus" class="size-4" />
-            New Purchase
-          </button>
-        </div>
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <div class="relative">
+              <UIcon
+                name="i-lucide-search"
+                class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+              />
 
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="rounded-xl border border-slate-200 bg-white p-5">
-            <div class="flex items-center justify-between">
-              <p class="text-sm font-medium text-slate-500">Total Purchases</p>
-              <div
-                class="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600"
-              >
-                <UIcon name="i-lucide-shopping-bag" class="size-5" />
-              </div>
+              <input
+                v-model="filters.search"
+                @change="getPurchases"
+                type="text"
+                placeholder="Search invoice, supplier..."
+                class="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10 sm:w-64"
+              />
             </div>
 
-            <h2 class="mt-4 text-2xl font-bold text-slate-900">
-              {{ formatCurrency(totalPurchases) }}
-            </h2>
+            <select
+              v-model="filters.status"
+              @change="getPurchases"
+              class="rounded border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-600 outline-none focus:border-primary"
+            >
+              <option value="">All Status</option>
+              <option value="draft">Draft</option>
+              <option value="ordered">Ordered</option>
+              <option value="received">Received</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
 
-            <p class="mt-2 text-xs text-slate-500">{{ purchases.length }} purchase invoices</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-5">
-            <div class="flex items-center justify-between">
-              <p class="text-sm font-medium text-slate-500">Total Paid</p>
-              <div
-                class="flex size-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
-              >
-                <UIcon name="i-lucide-circle-check" class="size-5" />
-              </div>
-            </div>
-
-            <h2 class="mt-4 text-2xl font-bold text-slate-900">
-              {{ formatCurrency(totalPaid) }}
-            </h2>
-
-            <p class="mt-2 text-xs text-emerald-600">Payments completed or received</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-5">
-            <div class="flex items-center justify-between">
-              <p class="text-sm font-medium text-slate-500">Total Due</p>
-              <div
-                class="flex size-10 items-center justify-center rounded-lg bg-rose-50 text-rose-600"
-              >
-                <UIcon name="i-lucide-wallet" class="size-5" />
-              </div>
-            </div>
-
-            <h2 class="mt-4 text-2xl font-bold text-slate-900">
-              {{ formatCurrency(totalDue) }}
-            </h2>
-
-            <p class="mt-2 text-xs text-rose-600">Outstanding supplier balance</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-5">
-            <div class="flex items-center justify-between">
-              <p class="text-sm font-medium text-slate-500">Total Invoices</p>
-              <div
-                class="flex size-10 items-center justify-center rounded-lg bg-violet-50 text-violet-600"
-              >
-                <UIcon name="i-lucide-file-text" class="size-5" />
-              </div>
-            </div>
-
-            <h2 class="mt-4 text-2xl font-bold text-slate-900">
-              {{ purchases.length }}
-            </h2>
-
-            <p class="mt-2 text-xs text-slate-500">All purchase transactions</p>
+            <button
+              type="button"
+              class="inline-flex items-center justify-center gap-2 rounded border border-border px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            >
+              <UIcon name="i-lucide-rotate-ccw" class="size-4" />
+              Reset
+            </button>
           </div>
         </div>
 
-        <!-- Purchases Table -->
-        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <!-- Table Header -->
-          <div
-            class="flex flex-col gap-4 border-b border-slate-200 p-5 xl:flex-row xl:items-center xl:justify-between"
-          >
-            <div>
-              <h2 class="text-base font-semibold text-slate-900">Purchase List</h2>
-              <p class="mt-1 text-sm text-slate-500">View and manage all your purchases.</p>
-            </div>
+        <div class="overflow-x-auto px-4">
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Date</th>
+                <th>Supplier</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Due</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
 
-            <div class="flex flex-col gap-3 sm:flex-row">
-              <div class="relative">
-                <UIcon
-                  name="i-lucide-search"
-                  class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  v-model="search"
-                  type="text"
-                  placeholder="Search invoice, supplier..."
-                  class="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10 sm:w-64"
-                  @input="handleSearch"
-                />
-              </div>
-
-              <select
-                v-model="status"
-                class="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-600 outline-none focus:border-primary"
-                @change="handleSearch"
+            <tbody>
+              <tr
+                v-for="purchase in purchases.data"
+                :key="purchase.id"
+                class="transition hover:bg-slate-50/70"
               >
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="partial">Partial</option>
-                <option value="unpaid">Unpaid</option>
-              </select>
+                <td>
+                  <span class="text-sm font-semibold text-primary">
+                    {{ purchase.purchase_no }}
+                  </span>
+                </td>
 
-              <button
-                type="button"
-                class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                @click="resetFilters"
-              >
-                <UIcon name="i-lucide-rotate-ccw" class="size-4" />
-                Reset
-              </button>
-            </div>
-          </div>
+                <td>{{ $date(purchase.date) }}</td>
 
-          <!-- Table -->
-          <div class="overflow-x-auto">
-            <table class="w-full min-w-[1050px] text-left">
-              <thead class="bg-slate-50">
-                <tr>
-                  <th
-                    class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    Invoice
-                  </th>
-                  <th
-                    class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    Date
-                  </th>
-                  <th
-                    class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    Supplier
-                  </th>
-                  <th
-                    class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    Items
-                  </th>
-                  <th
-                    class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    Total
-                  </th>
-                  <th
-                    class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    Paid
-                  </th>
-                  <th
-                    class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    Due
-                  </th>
-                  <th
-                    class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    Status
-                  </th>
-                  <th
-                    class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    Action
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody class="divide-y divide-slate-100">
-                <tr
-                  v-for="purchase in paginatedPurchases"
-                  :key="purchase.id"
-                  class="transition hover:bg-slate-50/70"
-                >
-                  <td class="whitespace-nowrap px-5 py-4">
-                    <span class="text-sm font-semibold text-primary">
-                      {{ purchase.invoice }}
-                    </span>
-                  </td>
-
-                  <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600">
-                    {{ formatDate(purchase.date) }}
-                  </td>
-
-                  <td class="whitespace-nowrap px-5 py-4">
-                    <div class="flex items-center gap-3">
-                      <div
-                        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600"
-                      >
-                        {{ purchase.supplier.charAt(0) }}
-                      </div>
-
-                      <span class="text-sm font-medium text-slate-800">
-                        {{ purchase.supplier }}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td class="whitespace-nowrap px-5 py-4 text-center text-sm text-slate-600">
-                    {{ purchase.items }}
-                  </td>
-
-                  <td
-                    class="whitespace-nowrap px-5 py-4 text-right text-sm font-semibold text-slate-800"
-                  >
-                    {{ formatCurrency(purchase.total) }}
-                  </td>
-
-                  <td class="whitespace-nowrap px-5 py-4 text-right text-sm text-emerald-700">
-                    {{ formatCurrency(purchase.paid) }}
-                  </td>
-
-                  <td class="whitespace-nowrap px-5 py-4 text-right text-sm text-rose-600">
-                    {{ formatCurrency(purchase.due) }}
-                  </td>
-
-                  <td class="whitespace-nowrap px-5 py-4 text-center">
-                    <span
-                      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset"
-                      :class="statusClass(purchase.status)"
-                    >
-                      {{ purchase.status }}
-                    </span>
-                  </td>
-
-                  <td class="whitespace-nowrap px-5 py-4">
-                    <div class="flex items-center justify-center gap-1">
-                      <button
-                        type="button"
-                        title="View purchase"
-                        class="flex size-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
-                      >
-                        <UIcon name="i-lucide-eye" class="size-4" />
-                      </button>
-
-                      <button
-                        type="button"
-                        title="Edit purchase"
-                        class="flex size-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-amber-50 hover:text-amber-600"
-                      >
-                        <UIcon name="i-lucide-pencil" class="size-4" />
-                      </button>
-
-                      <button
-                        type="button"
-                        title="More options"
-                        class="flex size-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                      >
-                        <UIcon name="i-lucide-ellipsis" class="size-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr v-if="paginatedPurchases.length === 0">
-                  <td colspan="9" class="px-5 py-16 text-center">
+                <td>
+                  <div class="flex items-center gap-3">
                     <div
-                      class="mx-auto flex size-12 items-center justify-center rounded-full bg-slate-100"
+                      class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold uppercase text-primary"
                     >
-                      <UIcon name="i-lucide-search-x" class="size-6 text-slate-400" />
+                      {{ purchase.supplier?.name?.charAt(0) || 'W' }}
                     </div>
 
-                    <p class="mt-3 text-sm font-semibold text-slate-800">No purchases found</p>
+                    <div>
+                      <p class="text-sm font-medium text-slate-800">
+                        {{ purchase.supplier?.name || 'Walk-in Supplier' }}
+                      </p>
+                      <p class="text-xs text-slate-500">
+                        {{ purchase.supplier?.company_name || purchase.supplier?.phone || '—' }}
+                      </p>
+                    </div>
+                  </div>
+                </td>
 
-                    <p class="mt-1 text-sm text-slate-500">Try changing your search or filters.</p>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                <td>
+                  <span
+                    class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"
+                  >
+                    {{ purchase.items?.length || 0 }}
+                    {{ purchase.items?.length === 1 ? 'item' : 'items' }}
+                  </span>
+                </td>
 
-          <!-- Pagination -->
-          <div
-            class="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <p class="text-sm text-slate-500">
-              Showing
-              <span class="font-medium text-slate-800">
-                {{ filteredPurchases.length ? (currentPage - 1) * perPage + 1 : 0 }}
-              </span>
-              to
-              <span class="font-medium text-slate-800">
-                {{ Math.min(currentPage * perPage, filteredPurchases.length) }}
-              </span>
-              of
-              <span class="font-medium text-slate-800">
-                {{ filteredPurchases.length }}
-              </span>
-              results
-            </p>
+                <td>{{ $currency(purchase.total) }}</td>
+                <td>{{ $currency(purchase.paid_amount) }}</td>
+                <td>{{ $currency(purchase.due_amount) }}</td>
 
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                :disabled="currentPage === 1"
-                class="flex size-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                @click="currentPage--"
-              >
-                <UIcon name="i-lucide-chevron-left" class="size-4" />
-              </button>
+                <td>
+                  <span
+                    class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset"
+                    :class="{
+                      'bg-emerald-50 text-emerald-700 ring-emerald-600/20':
+                        purchase.status === 'received',
+                      'bg-blue-50 text-blue-700 ring-blue-600/20': purchase.status === 'ordered',
+                      'bg-amber-50 text-amber-700 ring-amber-600/20': purchase.status === 'draft',
+                      'bg-rose-50 text-rose-700 ring-rose-600/20': purchase.status === 'cancelled',
+                    }"
+                  >
+                    {{ purchase.status }}
+                  </span>
+                </td>
 
-              <button
-                v-for="page in totalPages"
-                :key="page"
-                type="button"
-                class="flex size-9 items-center justify-center rounded-lg border text-sm font-medium transition"
-                :class="
-                  currentPage === page
-                    ? 'border-primary bg-primary text-white'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                "
-                @click="currentPage = page"
-              >
-                {{ page }}
-              </button>
+                <td>
+                  <div class="flex items-center justify-center gap-1">
+                    <button
+                      type="button"
+                      title="View purchase"
+                      class="flex size-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
+                      @click="$router.push(`/purchases/${purchase.id}`)"
+                    >
+                      <UIcon name="i-lucide-eye" class="size-4" />
+                    </button>
 
-              <button
-                type="button"
-                :disabled="currentPage >= totalPages || totalPages === 0"
-                class="flex size-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                @click="currentPage++"
-              >
-                <UIcon name="i-lucide-chevron-right" class="size-4" />
-              </button>
-            </div>
+                    <button
+                      type="button"
+                      title="Edit purchase"
+                      class="flex size-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-amber-50 hover:text-amber-600"
+                      @click="$router.push(`/purchases/${purchase.id}/edit`)"
+                    >
+                      <UIcon name="i-lucide-pencil" class="size-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      title="More options"
+                      class="flex size-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                    >
+                      <UIcon name="i-lucide-ellipsis" class="size-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr v-if="!purchases.data?.length">
+                <td colspan="9" class="px-5 py-12 text-center">
+                  <UIcon
+                    name="i-lucide-package-search"
+                    class="mx-auto mb-3 size-10 text-slate-300"
+                  />
+                  <p class="text-sm font-medium text-slate-700">No purchases found</p>
+                  <p class="mt-1 text-sm text-slate-500">Purchase records will appear here.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <p class="text-sm text-slate-500">
+            Showing
+            <span class="font-medium text-slate-800">
+              {{ purchases?.meta?.from ?? 0 }}
+            </span>
+            to
+            <span class="font-medium text-slate-800">
+              {{ purchases?.meta?.to ?? 0 }}
+            </span>
+            of
+            <span class="font-medium text-slate-800">
+              {{ purchases?.meta?.total ?? 0 }}
+            </span>
+            results
+          </p>
+
+          <div class="flex items-center gap-2">
+            <UPagination
+              v-model:page="filters.page"
+              show-edges
+              :sibling-count="1"
+              :total="purchases?.meta?.total"
+              :items-per-page="purchases?.meta?.per_page"
+            />
           </div>
         </div>
       </div>
