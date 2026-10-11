@@ -110,17 +110,33 @@ const holdCart = async () => {
 }
 
 const placeOrder = async () => {
+  // Open popup directly on Place Order click
+  const printWindow = window.open('', '_blank', 'width=800,height=700,resizable=yes,scrollbars=yes')
+
   try {
     const response = await saleStore.store(form)
 
+    const sale = response.data.data
+
+    console.log(sale)
+
+    if (printWindow) {
+      printInvoice(sale, printWindow)
+    } else {
+      toast.add({
+        title: 'Please allow popups for this site.',
+        color: 'error',
+      })
+    }
+
+    // Reset cart after successful order if needed
     // cartStore.$reset()
     // await cartStore.getCart()
-
-    console.log(response.data.data)
-
-    // Print invoice after successful order
-    printInvoice(response.data.data)
   } catch (error) {
+    if (printWindow && !printWindow.closed) {
+      printWindow.close()
+    }
+
     if (error.data) {
       toast.add({
         title: error.data?.message,
@@ -140,13 +156,8 @@ onMounted(async () => {
   form.customer_id = customerStore.customer?.id ?? null
 })
 
-const printInvoice = (sale) => {
-  const printWindow = window.open('', '_blank', 'width=800,height=700,resizable=yes,scrollbars=yes')
-
-  if (!printWindow) {
-    alert('Popup blocked. Please allow popups for this site.')
-    return
-  }
+const printInvoice = (sale, printWindow) => {
+  if (!printWindow || printWindow.closed) return
 
   printWindow.document.open()
 
