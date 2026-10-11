@@ -36,11 +36,6 @@ export const useSaleStore = defineStore('sale', {
       try {
         return await apiClient.post('/api/sales', payload)
       } catch (error) {
-        if (error.response) {
-          this.errors = error.response.data.errors
-          throw error.response
-        }
-
         throw error
       } finally {
         this.loading = false

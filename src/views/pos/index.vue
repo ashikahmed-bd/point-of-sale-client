@@ -116,10 +116,7 @@ const placeOrder = async () => {
     // cartStore.$reset()
     // await cartStore.getCart()
 
-    toast.add({
-      title: response.data.message,
-      color: 'success',
-    })
+    console.log(response.data.data)
 
     // Print invoice after successful order
     printInvoice(response.data.data)
