@@ -111,12 +111,12 @@ const submit = () => {
             </div>
 
             <div>
-              <h2 class="text-sm font-semibold text-slate-800">Financial Information</h2>
-              <p class="mt-0.5 text-xs text-slate-500">Set the opening balance and credit limit.</p>
+              <h2 class="text-sm font-semibold text-slate-800">Additional Information</h2>
+              <p class="mt-0.5 text-xs text-slate-500">Notes and supplier account status.</p>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2 p-4">
             <div class="space-y-1.5">
               <label class="text-sm font-medium text-slate-700"> Opening Balance </label>
               <BaseInput
@@ -141,24 +141,7 @@ const submit = () => {
               <p class="text-xs text-slate-400">Leave blank if there is no credit limit.</p>
             </div>
           </div>
-        </section>
-
-        <!-- Additional Information -->
-        <section class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <div class="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
-            <div
-              class="flex size-10 items-center justify-center rounded-lg bg-violet-50 text-violet-600"
-            >
-              <UIcon name="i-lucide-notebook-pen" class="size-5" />
-            </div>
-
-            <div>
-              <h2 class="text-sm font-semibold text-slate-800">Additional Information</h2>
-              <p class="mt-0.5 text-xs text-slate-500">Notes and supplier account status.</p>
-            </div>
-          </div>
-
-          <div class="space-y-5 p-5">
+          <div class="p-4">
             <div class="space-y-1.5">
               <label class="text-sm font-medium text-slate-700"> Notes </label>
               <textarea
@@ -204,7 +187,6 @@ const submit = () => {
           </div>
         </section>
 
-        <!-- Form Actions -->
         <div class="flex flex-center justify-end gap-3">
           <button
             type="button"

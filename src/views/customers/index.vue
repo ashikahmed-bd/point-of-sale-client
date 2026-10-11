@@ -2,41 +2,13 @@
 import Default from '@/layouts/Default.vue'
 import { useCustomerStore } from '@/stores/customer'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 
 const customerStore = useCustomerStore()
 const { customers } = storeToRefs(customerStore)
 
-const search = ref('')
-
 const loadCustomers = async () => {
   await customerStore.all()
-}
-
-const filteredCustomers = computed(() => {
-  const keyword = search.value.trim().toLowerCase()
-
-  if (!keyword) return customers.value
-
-  return customers.value.filter((customer) =>
-    [customer.name, customer.phone, customer.email, customer.city].some((value) =>
-      String(value ?? '')
-        .toLowerCase()
-        .includes(keyword),
-    ),
-  )
-})
-
-const viewCustomer = (customer) => {
-  console.log('View:', customer)
-}
-
-const editCustomer = (customer) => {
-  console.log('Edit:', customer)
-}
-
-const deleteCustomer = (customer) => {
-  console.log('Delete:', customer)
 }
 
 onMounted(() => {
@@ -47,7 +19,6 @@ onMounted(() => {
 <template>
   <Default>
     <main class="space-y-4 p-4">
-      <!-- Header -->
       <div class="flex items-center justify-between gap-4">
         <div>
           <h1 class="text-lg font-bold text-body">Customers</h1>
@@ -65,6 +36,7 @@ onMounted(() => {
 
           <button
             type="button"
+            @click="$router.push({ name: 'customers.create' })"
             class="flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-white hover:bg-primary/90"
           >
             <UIcon name="i-lucide-plus" class="size-4" />
@@ -73,9 +45,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- List -->
       <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <!-- Toolbar -->
         <div class="flex items-center justify-between gap-3 border-b border-slate-100 p-3">
           <div class="relative max-w-sm flex-1">
             <UIcon
@@ -84,17 +54,15 @@ onMounted(() => {
             />
 
             <input
-              v-model="search"
               type="search"
               placeholder="Search customers..."
               class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-body outline-none placeholder:text-body/40 focus:border-primary"
             />
           </div>
 
-          <div class="text-sm text-body/50">{{ filteredCustomers.length }} customers</div>
+          <div class="text-sm text-body/50">12 customers</div>
         </div>
 
-        <!-- Table -->
         <div class="overflow-x-auto">
           <table>
             <thead>
@@ -207,18 +175,6 @@ onMounted(() => {
                       <UIcon name="i-lucide-trash-2" class="size-4" />
                     </button>
                   </div>
-                </td>
-              </tr>
-
-              <tr v-if="!customers.data.length">
-                <td colspan="6" class="px-4 py-12 text-center">
-                  <UIcon name="i-lucide-users" class="mx-auto size-8 text-body/20" />
-
-                  <p class="mt-2 text-sm font-medium text-body">No customers found</p>
-
-                  <p class="mt-1 text-xs text-body/50">
-                    Try a different search or add a new customer.
-                  </p>
                 </td>
               </tr>
             </tbody>

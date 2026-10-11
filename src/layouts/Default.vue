@@ -34,6 +34,10 @@ const navigation = [
         label: 'Create Sale',
         to: '/pos',
       },
+      {
+        label: 'Sales Returns',
+        to: '/sales/returns',
+      },
     ],
   },
 
@@ -49,6 +53,10 @@ const navigation = [
       {
         label: 'New Purchase',
         to: '/purchases/create',
+      },
+      {
+        label: 'Purchase Returns',
+        to: '/purchases/returns',
       },
     ],
   },
@@ -89,6 +97,10 @@ const navigation = [
       {
         label: 'Low Stock',
         to: '/inventory/low-stock',
+      },
+      {
+        label: 'Expired Products',
+        to: '/inventory/expired-products',
       },
       {
         label: 'Stock Adjustment',
@@ -155,11 +167,7 @@ const navigation = [
         to: '/expenses',
       },
       {
-        label: 'Add Expense',
-        to: '/expenses/create',
-      },
-      {
-        label: 'Categories',
+        label: 'Expense Categories',
         to: '/expenses/categories',
       },
     ],
@@ -175,12 +183,12 @@ const navigation = [
         to: '/accounting',
       },
       {
-        label: 'Transactions',
-        to: '/accounting/transactions',
+        label: 'Chart of Accounts',
+        to: '/accounting/accounts',
       },
       {
-        label: 'Accounts',
-        to: '/accounting/accounts',
+        label: 'Transactions',
+        to: '/accounting/transactions',
       },
       {
         label: 'Cash Flow',
@@ -251,7 +259,7 @@ const navigation = [
         to: '/settings/appearance',
       },
       {
-        label: 'System',
+        label: 'System Settings',
         to: '/settings/system',
       },
     ],

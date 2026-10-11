@@ -15,65 +15,11 @@ const loadProducts = async () => {
 onMounted(() => {
   loadProducts()
 })
-
-const stats = [
-  {
-    title: 'Total Products',
-    value: '1,240',
-    change: '+12%',
-    icon: 'i-lucide-box',
-    class: 'bg-primary/10 text-primary',
-  },
-  {
-    title: 'Low Stock',
-    value: '28',
-    change: '+5%',
-    icon: 'i-lucide-triangle-alert',
-    class: 'bg-orange-50 text-orange-500',
-  },
-  {
-    title: 'Out of Stock',
-    value: '12',
-    change: '+8%',
-    icon: 'i-lucide-circle-x',
-    class: 'bg-red-50 text-red-500',
-  },
-  {
-    title: 'Active Products',
-    value: '1,180',
-    change: '+10%',
-    icon: 'i-lucide-tag',
-    class: 'bg-violet-50 text-violet-500',
-  },
-]
-
-const statusClass = (status) => {
-  if (status === 'In Stock') {
-    return 'bg-emerald-50 text-emerald-600'
-  }
-
-  if (status === 'Low Stock') {
-    return 'bg-orange-50 text-orange-600'
-  }
-
-  return 'bg-red-50 text-red-600'
-}
-
-const stockClass = (stock) => {
-  if (!stock) return 'bg-slate-200'
-  if (stock <= 25) return 'bg-orange-500'
-  return 'bg-emerald-500'
-}
-
-const stockWidth = (stock) => {
-  if (!stock) return '0%'
-  return `${Math.min(stock, 100)}%`
-}
 </script>
 
 <template>
   <Default>
-    <main class="p-4">
+    <main class="space-y-4 p-4">
       <div class="mb-4 flex items-center justify-between gap-4">
         <div>
           <h1 class="text-sm font-semibold text-body">Products</h1>
@@ -102,34 +48,71 @@ const stockWidth = (stock) => {
         </div>
       </div>
 
-      <div class="grid grid-cols-4 gap-4">
-        <div
-          v-for="stat in stats"
-          :key="stat.title"
-          class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3"
-        >
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <!-- Total Products -->
+        <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
           <div
-            class="flex size-10 shrink-0 items-center justify-center rounded-lg"
-            :class="stat.class"
+            class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
           >
-            <UIcon :name="stat.icon" class="size-5" />
+            <UIcon name="i-lucide-box" class="size-5" />
           </div>
-
           <div class="min-w-0">
-            <p class="text-sm text-body/60">
-              {{ stat.title }}
-            </p>
-
+            <p class="text-sm text-body/60">Total Products</p>
             <div class="mt-0.5 flex items-center gap-2">
-              <span class="text-sm font-semibold text-body">
-                {{ stat.value }}
-              </span>
-
-              <span class="text-sm font-medium text-emerald-600">
-                {{ stat.change }}
-              </span>
+              <span class="text-sm font-semibold text-body">1,240</span>
+              <span class="text-sm font-medium text-emerald-600">+12%</span>
             </div>
+            <p class="mt-0.5 text-xs text-body/40">vs last month</p>
+          </div>
+        </div>
 
+        <!-- Low Stock -->
+        <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
+          <div
+            class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-500"
+          >
+            <UIcon name="i-lucide-triangle-alert" class="size-5" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-body/60">Low Stock</p>
+            <div class="mt-0.5 flex items-center gap-2">
+              <span class="text-sm font-semibold text-body">28</span>
+              <span class="text-sm font-medium text-emerald-600">+5%</span>
+            </div>
+            <p class="mt-0.5 text-xs text-body/40">vs last month</p>
+          </div>
+        </div>
+
+        <!-- Out of Stock -->
+        <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
+          <div
+            class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-500"
+          >
+            <UIcon name="i-lucide-circle-x" class="size-5" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-body/60">Out of Stock</p>
+            <div class="mt-0.5 flex items-center gap-2">
+              <span class="text-sm font-semibold text-body">12</span>
+              <span class="text-sm font-medium text-emerald-600">+8%</span>
+            </div>
+            <p class="mt-0.5 text-xs text-body/40">vs last month</p>
+          </div>
+        </div>
+
+        <!-- Active Products -->
+        <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
+          <div
+            class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-500"
+          >
+            <UIcon name="i-lucide-tag" class="size-5" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-body/60">Active Products</p>
+            <div class="mt-0.5 flex items-center gap-2">
+              <span class="text-sm font-semibold text-body">1,180</span>
+              <span class="text-sm font-medium text-emerald-600">+10%</span>
+            </div>
             <p class="mt-0.5 text-xs text-body/40">vs last month</p>
           </div>
         </div>
@@ -250,10 +233,10 @@ const stockWidth = (stock) => {
                 <td>
                   <div>
                     <p class="text-sm font-medium text-body">
-                      {{ $currency(product.selling_price, product.currency) }}
+                      {{ $currency(product.price, product.currency) }}
                     </p>
-                    <p v-if="product.compare_price" class="text-xs text-body/40 line-through">
-                      {{ $currency(product.compare_price, product.currency) }}
+                    <p v-if="product.base_price" class="text-xs text-body/40 line-through">
+                      {{ $currency(product.base_price, product.currency) }}
                     </p>
                   </div>
                 </td>

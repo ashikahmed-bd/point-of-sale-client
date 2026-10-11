@@ -1,484 +1,689 @@
 <script setup>
+import { computed, ref } from 'vue'
 import Default from '@/layouts/Default.vue'
 
-const adjustments = [
+const search = ref('')
+const adjustmentTypeFilter = ref('')
+const warehouseFilter = ref('')
+const dateFilter = ref('')
+
+const products = ref([
+  { id: 1, name: 'Paracetamol 500mg', sku: 'MED-001', stock: 250 },
+  { id: 2, name: 'Vitamin C 1000mg', sku: 'SUP-002', stock: 50 },
+  { id: 3, name: 'Amoxicillin 250mg', sku: 'MED-003', stock: 0 },
+  { id: 4, name: 'Cough Syrup 100ml', sku: 'SYR-004', stock: 120 },
+  { id: 5, name: 'Hand Sanitizer 500ml', sku: 'PCS-005', stock: 35 },
+])
+
+const adjustments = ref([
   {
-    id: 'ADJ-00021',
-    date: '29 Sep 2026, 10:42 AM',
-    product: 'Real Madrid Home Jersey 2025/26',
-    sku: 'RM-HOME-2526',
-    type: 'Stock In',
-    quantity: 20,
-    before: 22,
-    after: 42,
-    reason: 'New Purchase',
-    reference: 'PO-00048',
+    id: 1,
+    reference: 'ADJ-0001',
+    product: 'Paracetamol 500mg',
+    sku: 'MED-001',
+    warehouse: 'Main Warehouse',
+    type: 'Increase',
+    quantity: 50,
+    before: 200,
+    after: 250,
+    reason: 'Stock Count Correction',
+    date: '2026-10-11',
     user: 'Admin',
-    status: 'Completed',
   },
   {
-    id: 'ADJ-00020',
-    date: '29 Sep 2026, 09:18 AM',
-    product: 'Barcelona Away Jersey 2025/26',
-    sku: 'BAR-AWAY-2526',
-    type: 'Stock Out',
-    quantity: 6,
-    before: 14,
-    after: 8,
-    reason: 'Damaged Items',
-    reference: 'DMG-00012',
-    user: 'Rahim',
-    status: 'Completed',
-  },
-  {
-    id: 'ADJ-00019',
-    date: '28 Sep 2026, 04:35 PM',
-    product: 'Kookaburra Cricket Ball',
-    sku: 'KKB-BALL-001',
-    type: 'Stock In',
-    quantity: 30,
-    before: 37,
-    after: 67,
-    reason: 'Purchase',
-    reference: 'PO-00047',
-    user: 'Admin',
-    status: 'Completed',
-  },
-  {
-    id: 'ADJ-00018',
-    date: '28 Sep 2026, 02:12 PM',
-    product: 'Nike Training Backpack',
-    sku: 'NK-BAG-001',
-    type: 'Stock Out',
-    quantity: 4,
-    before: 20,
-    after: 16,
-    reason: 'Manual Adjustment',
-    reference: 'ADJ-00018',
-    user: 'Karim',
-    status: 'Completed',
-  },
-  {
-    id: 'ADJ-00017',
-    date: '27 Sep 2026, 11:26 AM',
-    product: 'Adidas Predator Elite',
-    sku: 'AD-PRED-ELT',
-    type: 'Stock In',
+    id: 2,
+    reference: 'ADJ-0002',
+    product: 'Vitamin C 1000mg',
+    sku: 'SUP-002',
+    warehouse: 'Main Warehouse',
+    type: 'Decrease',
     quantity: 10,
-    before: 4,
-    after: 14,
-    reason: 'Opening Stock',
-    reference: 'OPEN-00006',
+    before: 60,
+    after: 50,
+    reason: 'Damaged Goods',
+    date: '2026-10-10',
     user: 'Admin',
-    status: 'Completed',
   },
   {
-    id: 'ADJ-00016',
-    date: '27 Sep 2026, 09:48 AM',
-    product: 'Football Training Cone Set',
-    sku: 'FT-CONE-001',
-    type: 'Stock Out',
-    quantity: 7,
-    before: 10,
-    after: 3,
-    reason: 'Damaged Items',
-    reference: 'DMG-00011',
-    user: 'Rahim',
-    status: 'Completed',
-  },
-  {
-    id: 'ADJ-00015',
-    date: '26 Sep 2026, 03:16 PM',
-    product: 'SS Ton Cricket Bat',
-    sku: 'SS-TON-001',
-    type: 'Stock Out',
+    id: 3,
+    reference: 'ADJ-0003',
+    product: 'Amoxicillin 250mg',
+    sku: 'MED-003',
+    warehouse: 'Branch Warehouse',
+    type: 'Decrease',
     quantity: 5,
     before: 5,
     after: 0,
-    reason: 'Sales Correction',
-    reference: 'COR-00008',
-    user: 'Karim',
-    status: 'Completed',
+    reason: 'Expired Products',
+    date: '2026-10-09',
+    user: 'Manager',
   },
   {
-    id: 'ADJ-00014',
-    date: '26 Sep 2026, 10:05 AM',
-    product: 'Nike Mercurial Vapor 16',
-    sku: 'NK-MV16-001',
-    type: 'Stock In',
-    quantity: 12,
-    before: 12,
-    after: 24,
-    reason: 'New Purchase',
-    reference: 'PO-00046',
+    id: 4,
+    reference: 'ADJ-0004',
+    product: 'Cough Syrup 100ml',
+    sku: 'SYR-004',
+    warehouse: 'Main Warehouse',
+    type: 'Increase',
+    quantity: 20,
+    before: 100,
+    after: 120,
+    reason: 'Stock Count Correction',
+    date: '2026-10-08',
     user: 'Admin',
-    status: 'Completed',
   },
-]
+  {
+    id: 5,
+    reference: 'ADJ-0005',
+    product: 'Hand Sanitizer 500ml',
+    sku: 'PCS-005',
+    warehouse: 'Branch Warehouse',
+    type: 'Decrease',
+    quantity: 15,
+    before: 50,
+    after: 35,
+    reason: 'Damaged Goods',
+    date: '2026-10-07',
+    user: 'Manager',
+  },
+])
 
-const summary = [
+const form = ref({
+  productId: '',
+  warehouse: 'Main Warehouse',
+  type: 'Increase',
+  quantity: '',
+  reason: '',
+  date: new Date().toISOString().slice(0, 10),
+  notes: '',
+})
+
+const selectedProduct = computed(() =>
+  products.value.find((product) => product.id === Number(form.value.productId)),
+)
+
+const currentStock = computed(() => selectedProduct.value?.stock ?? 0)
+
+const previewStock = computed(() => {
+  const quantity = Number(form.value.quantity) || 0
+
+  if (form.value.type === 'Increase') return currentStock.value + quantity
+  if (form.value.type === 'Decrease') return currentStock.value - quantity
+  return quantity
+})
+
+const stats = computed(() => [
   {
     title: 'Total Adjustments',
-    value: '128',
-    icon: 'i-lucide-sliders-horizontal',
+    value: adjustments.value.length,
+    icon: 'i-lucide-clipboard-list',
+    color: 'text-primary bg-primary/10',
   },
   {
-    title: 'Stock Added',
-    value: '+846',
-    icon: 'i-lucide-arrow-down-to-line',
+    title: 'Stock Increased',
+    value: adjustments.value.filter((a) => a.type === 'Increase').length,
+    icon: 'i-lucide-trending-up',
+    color: 'text-green-600 bg-green-50',
   },
   {
-    title: 'Stock Removed',
-    value: '-392',
-    icon: 'i-lucide-arrow-up-from-line',
+    title: 'Stock Decreased',
+    value: adjustments.value.filter((a) => a.type === 'Decrease').length,
+    icon: 'i-lucide-trending-down',
+    color: 'text-red-600 bg-red-50',
   },
   {
-    title: 'Today',
-    value: '8',
-    icon: 'i-lucide-calendar-days',
+    title: 'Net Quantity Change',
+    value: adjustments.value.reduce(
+      (sum, a) => sum + (a.type === 'Increase' ? a.quantity : -a.quantity),
+      0,
+    ),
+    icon: 'i-lucide-scale',
+    color: 'text-blue-600 bg-blue-50',
   },
-]
+])
+
+const filteredAdjustments = computed(() =>
+  adjustments.value.filter((adjustment) => {
+    const term = search.value.toLowerCase()
+
+    const matchesSearch = `${adjustment.reference} ${adjustment.product} ${adjustment.sku}`
+      .toLowerCase()
+      .includes(term)
+
+    const matchesType =
+      !adjustmentTypeFilter.value || adjustment.type === adjustmentTypeFilter.value
+
+    const matchesWarehouse =
+      !warehouseFilter.value || adjustment.warehouse === warehouseFilter.value
+
+    const matchesDate = !dateFilter.value || adjustment.date === dateFilter.value
+
+    return matchesSearch && matchesType && matchesWarehouse && matchesDate
+  }),
+)
+
+function clearFilters() {
+  search.value = ''
+  adjustmentTypeFilter.value = ''
+  warehouseFilter.value = ''
+  dateFilter.value = ''
+}
+
+function resetForm() {
+  form.value = {
+    productId: '',
+    warehouse: 'Main Warehouse',
+    type: 'Increase',
+    quantity: '',
+    reason: '',
+    date: new Date().toISOString().slice(0, 10),
+    notes: '',
+  }
+}
+
+function formatDate(date) {
+  if (!date) return '-'
+
+  return new Date(`${date}T00:00:00`).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+function saveAdjustment() {
+  const quantity = Number(form.value.quantity)
+
+  if (
+    !selectedProduct.value ||
+    !form.value.warehouse ||
+    !form.value.type ||
+    !Number.isInteger(quantity) ||
+    quantity <= 0 ||
+    !form.value.reason ||
+    !form.value.date
+  ) {
+    alert('Please fill in all required fields correctly.')
+    return
+  }
+
+  if (form.value.type === 'Decrease' && quantity > currentStock.value) {
+    alert('Adjustment quantity cannot exceed current stock.')
+    return
+  }
+
+  if (form.value.date > new Date().toISOString().slice(0, 10)) {
+    alert('Adjustment date cannot be in the future.')
+    return
+  }
+
+  const product = selectedProduct.value
+  const before = product.stock
+  let after = before
+
+  if (form.value.type === 'Increase') after = before + quantity
+  else if (form.value.type === 'Decrease') after = before - quantity
+  else after = quantity
+
+  const reference = `ADJ-${String(Math.max(0, ...adjustments.value.map((a) => a.id)) + 1).padStart(
+    4,
+    '0',
+  )}`
+
+  product.stock = after
+
+  adjustments.value.unshift({
+    id: Math.max(0, ...adjustments.value.map((a) => a.id)) + 1,
+    reference,
+    product: product.name,
+    sku: product.sku,
+    warehouse: form.value.warehouse,
+    type:
+      form.value.type === 'Set Exact'
+        ? after >= before
+          ? 'Increase'
+          : 'Decrease'
+        : form.value.type,
+    quantity: Math.abs(after - before),
+    before,
+    after,
+    reason: form.value.reason,
+    date: form.value.date,
+    user: 'Admin',
+    notes: form.value.notes,
+  })
+
+  alert(`Stock adjustment ${reference} created successfully.`)
+  resetForm()
+}
 </script>
 
 <template>
   <Default>
-    <div class="space-y-5">
-      <!-- Header -->
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <main class="space-y-4 p-4">
+      <!-- Page Header -->
+      <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <div class="mb-1 flex items-center gap-2 text-xs text-slate-500">
-            <NuxtLink to="/inventory" class="hover:text-primary"> Inventory </NuxtLink>
-
-            <UIcon name="i-lucide-chevron-right" class="h-3.5 w-3.5" />
-
-            <span class="text-slate-700">Stock Adjustments</span>
-          </div>
-
-          <h1 class="text-xl font-bold text-slate-900">Stock Adjustments</h1>
-
-          <p class="mt-1 text-sm text-slate-500">
-            Track and manage all inventory stock adjustments.
+          <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Stock Adjustments</h1>
+          <p class="mt-1 text-sm text-gray-500">
+            Record stock corrections, damaged goods, expired items and other inventory changes.
           </p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap gap-2">
           <button
             type="button"
-            class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+            @click="clearFilters"
           >
-            <UIcon name="i-lucide-download" class="h-4 w-4" />
-            Export
+            <UIcon name="i-lucide-rotate-ccw" class="size-4" />
+            Reset Filters
           </button>
 
-          <NuxtLink
-            to="/inventory/adjustments/create"
-            class="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            @click="
+              document?.getElementById('adjustment-form')?.scrollIntoView({ behavior: 'smooth' })
+            "
           >
-            <UIcon name="i-lucide-plus" class="h-4 w-4" />
+            <UIcon name="i-lucide-plus" class="size-4" />
             New Adjustment
-          </NuxtLink>
+          </button>
         </div>
       </div>
 
-      <!-- Summary -->
+      <!-- Summary Cards -->
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div
-          v-for="item in summary"
+          v-for="item in stats"
           :key="item.title"
-          class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+          class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900"
         >
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-3">
             <div>
-              <p class="text-xs font-medium text-slate-500">
-                {{ item.title }}
-              </p>
-
-              <p class="mt-1 text-xl font-bold text-slate-900">
+              <p class="text-sm text-gray-500">{{ item.title }}</p>
+              <p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
                 {{ item.value }}
               </p>
             </div>
 
             <div
-              class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600"
+              :class="['flex size-11 shrink-0 items-center justify-center rounded-xl', item.color]"
             >
-              <UIcon :name="item.icon" class="h-4.5 w-4.5" />
+              <UIcon :name="item.icon" class="size-5" />
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Main Card -->
-      <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <!-- Filters -->
-        <div class="border-b border-slate-200 p-4">
-          <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div class="relative w-full xl:max-w-sm">
+      <!-- Main Content -->
+      <div class="grid grid-cols-1 items-start gap-4 2xl:grid-cols-3">
+        <!-- Adjustment History -->
+        <section
+          class="min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 2xl:col-span-2"
+        >
+          <div
+            class="flex flex-col justify-between gap-3 border-b border-gray-100 p-4 dark:border-gray-800 sm:flex-row sm:items-center"
+          >
+            <div>
+              <h2 class="font-semibold text-gray-900 dark:text-white">Adjustment History</h2>
+              <p class="mt-1 text-xs text-gray-500">Track every inventory quantity correction.</p>
+            </div>
+
+            <span
+              class="w-fit rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+            >
+              {{ filteredAdjustments.length }} records
+            </span>
+          </div>
+
+          <!-- Filters -->
+          <div class="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="relative">
               <UIcon
                 name="i-lucide-search"
-                class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400"
               />
+              <input
+                v-model="search"
+                type="text"
+                placeholder="Search reference, product..."
+                class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+
+            <select
+              v-model="adjustmentTypeFilter"
+              class="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">All Types</option>
+              <option>Increase</option>
+              <option>Decrease</option>
+            </select>
+
+            <select
+              v-model="warehouseFilter"
+              class="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">All Warehouses</option>
+              <option>Main Warehouse</option>
+              <option>Branch Warehouse</option>
+            </select>
+
+            <input
+              v-model="dateFilter"
+              type="date"
+              class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            />
+          </div>
+
+          <!-- Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[900px] text-left text-sm">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-800/70">
+                <tr>
+                  <th class="px-4 py-3 font-medium">Reference</th>
+                  <th class="px-4 py-3 font-medium">Product</th>
+                  <th class="px-4 py-3 font-medium">Type</th>
+                  <th class="px-4 py-3 text-right font-medium">Change</th>
+                  <th class="px-4 py-3 text-right font-medium">Before</th>
+                  <th class="px-4 py-3 text-right font-medium">After</th>
+                  <th class="px-4 py-3 font-medium">Reason</th>
+                  <th class="px-4 py-3 font-medium">Date</th>
+                </tr>
+              </thead>
+
+              <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                <tr
+                  v-for="adjustment in filteredAdjustments"
+                  :key="adjustment.id"
+                  class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
+                >
+                  <td class="whitespace-nowrap px-4 py-4">
+                    <span class="font-medium text-primary">
+                      {{ adjustment.reference }}
+                    </span>
+                    <p class="mt-1 text-xs text-gray-400">{{ adjustment.user }}</p>
+                  </td>
+
+                  <td class="px-4 py-4">
+                    <p class="font-medium text-gray-800 dark:text-gray-100">
+                      {{ adjustment.product }}
+                    </p>
+                    <p class="mt-1 text-xs text-gray-500">{{ adjustment.sku }}</p>
+                  </td>
+
+                  <td class="px-4 py-4">
+                    <span
+                      class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                      :class="
+                        adjustment.type === 'Increase'
+                          ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      "
+                    >
+                      <UIcon
+                        :name="
+                          adjustment.type === 'Increase'
+                            ? 'i-lucide-trending-up'
+                            : 'i-lucide-trending-down'
+                        "
+                        class="mr-1 size-3.5"
+                      />
+                      {{ adjustment.type }}
+                    </span>
+                  </td>
+
+                  <td
+                    class="px-4 py-4 text-right font-semibold"
+                    :class="adjustment.type === 'Increase' ? 'text-green-600' : 'text-red-600'"
+                  >
+                    {{ adjustment.type === 'Increase' ? '+' : '-' }}{{ adjustment.quantity }}
+                  </td>
+
+                  <td class="px-4 py-4 text-right text-gray-500">
+                    {{ adjustment.before }}
+                  </td>
+
+                  <td class="px-4 py-4 text-right font-medium text-gray-800 dark:text-gray-200">
+                    {{ adjustment.after }}
+                  </td>
+
+                  <td class="px-4 py-4">
+                    <span class="text-gray-600 dark:text-gray-300">
+                      {{ adjustment.reason }}
+                    </span>
+                    <p class="mt-1 text-xs text-gray-400">{{ adjustment.warehouse }}</p>
+                  </td>
+
+                  <td class="whitespace-nowrap px-4 py-4 text-gray-500">
+                    {{ formatDate(adjustment.date) }}
+                  </td>
+                </tr>
+
+                <tr v-if="filteredAdjustments.length === 0">
+                  <td colspan="8" class="px-4 py-12 text-center">
+                    <UIcon name="i-lucide-clipboard-list" class="mx-auto size-9 text-gray-300" />
+                    <p class="mt-2 font-medium text-gray-700 dark:text-gray-300">
+                      No adjustments found
+                    </p>
+                    <p class="mt-1 text-sm text-gray-500">Try another search keyword or filter.</p>
+                    <button
+                      type="button"
+                      class="mt-3 text-sm font-medium text-primary hover:underline"
+                      @click="clearFilters"
+                    >
+                      Clear filters
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div
+            class="flex flex-col justify-between gap-2 border-t border-gray-100 px-4 py-3 text-sm text-gray-500 dark:border-gray-800 sm:flex-row sm:items-center"
+          >
+            <span
+              >Showing {{ filteredAdjustments.length }} of
+              {{ adjustments.length }} adjustments</span
+            >
+            <span class="text-xs">Newest adjustments appear first.</span>
+          </div>
+        </section>
+
+        <!-- New Adjustment Form -->
+        <section
+          id="adjustment-form"
+          class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
+        >
+          <div class="flex items-center gap-3 border-b border-gray-100 p-4 dark:border-gray-800">
+            <div
+              class="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary"
+            >
+              <UIcon name="i-lucide-sliders-horizontal" class="size-5" />
+            </div>
+
+            <div>
+              <h2 class="font-semibold text-gray-900 dark:text-white">New Adjustment</h2>
+              <p class="mt-1 text-xs text-gray-500">Correct the current stock quantity.</p>
+            </div>
+          </div>
+
+          <form class="space-y-4 p-4" @submit.prevent="saveAdjustment">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Product <span class="text-red-500">*</span>
+              </label>
+
+              <select
+                v-model="form.productId"
+                required
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">Select product</option>
+                <option v-for="product in products" :key="product.id" :value="String(product.id)">
+                  {{ product.name }} ({{ product.sku }})
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Warehouse <span class="text-red-500">*</span>
+              </label>
+
+              <select
+                v-model="form.warehouse"
+                required
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              >
+                <option>Main Warehouse</option>
+                <option>Branch Warehouse</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Adjustment Type <span class="text-red-500">*</span>
+              </label>
+
+              <select
+                v-model="form.type"
+                required
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              >
+                <option>Increase</option>
+                <option>Decrease</option>
+                <option>Set Exact</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Current Stock
+                </label>
+                <input
+                  :value="currentStock"
+                  readonly
+                  class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800"
+                />
+              </div>
+
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {{ form.type === 'Set Exact' ? 'New Stock' : 'Quantity' }}
+                  <span class="text-red-500">*</span>
+                </label>
+                <input
+                  v-model.number="form.quantity"
+                  type="number"
+                  min="1"
+                  step="1"
+                  required
+                  placeholder="Enter qty"
+                  class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+            </div>
+
+            <div
+              class="rounded-lg border border-gray-100 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/60"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-500">Stock after adjustment</span>
+                <span
+                  class="font-semibold"
+                  :class="previewStock < 0 ? 'text-red-600' : 'text-gray-900 dark:text-white'"
+                >
+                  {{ selectedProduct && quantity !== '' ? previewStock : '—' }}
+                </span>
+              </div>
+              <p v-if="previewStock < 0 && selectedProduct" class="mt-1 text-xs text-red-600">
+                Quantity cannot reduce stock below zero.
+              </p>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Reason <span class="text-red-500">*</span>
+              </label>
+
+              <select
+                v-model="form.reason"
+                required
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">Select reason</option>
+                <option>Stock Count Correction</option>
+                <option>Damaged Goods</option>
+                <option>Expired Products</option>
+                <option>Lost or Missing</option>
+                <option>Opening Stock Correction</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Adjustment Date <span class="text-red-500">*</span>
+              </label>
 
               <input
-                type="text"
-                placeholder="Search adjustment, product or SKU..."
-                class="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                v-model="form.date"
+                type="date"
+                :max="new Date().toISOString().slice(0, 10)"
+                required
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </div>
 
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <select
-                class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                <option>All Types</option>
-                <option>Stock In</option>
-                <option>Stock Out</option>
-              </select>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Notes
+              </label>
 
-              <select
-                class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                <option>All Reasons</option>
-                <option>New Purchase</option>
-                <option>Damaged Items</option>
-                <option>Manual Adjustment</option>
-                <option>Opening Stock</option>
-              </select>
-
-              <select
-                class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-              >
-                <option>All Status</option>
-                <option>Completed</option>
-                <option>Pending</option>
-                <option>Cancelled</option>
-              </select>
+              <textarea
+                v-model="form.notes"
+                rows="3"
+                placeholder="Add adjustment notes..."
+                class="w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
             </div>
-          </div>
-        </div>
 
-        <!-- Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[1050px] text-left text-sm">
-            <thead class="bg-slate-50 text-xs font-semibold text-slate-500">
-              <tr>
-                <th class="px-4 py-3">Adjustment</th>
+            <div
+              class="flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-xs leading-5 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
+            >
+              <UIcon name="i-lucide-info" class="mt-0.5 size-4 shrink-0" />
+              <p>
+                Confirm the physical stock count before saving an adjustment. This demo stores
+                changes only in the current page state.
+              </p>
+            </div>
 
-                <th class="px-4 py-3">Product</th>
-
-                <th class="px-4 py-3">Type</th>
-
-                <th class="px-4 py-3 text-center">Quantity</th>
-
-                <th class="px-4 py-3">Stock</th>
-
-                <th class="px-4 py-3">Reason</th>
-
-                <th class="px-4 py-3">User</th>
-
-                <th class="px-4 py-3">Status</th>
-
-                <th class="px-4 py-3 text-right">Action</th>
-              </tr>
-            </thead>
-
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="item in adjustments"
-                :key="item.id"
-                class="transition hover:bg-slate-50/70"
+            <div class="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
+              <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                @click="resetForm"
               >
-                <!-- Adjustment -->
-                <td class="px-4 py-3.5">
-                  <div class="font-semibold text-slate-800">
-                    {{ item.id }}
-                  </div>
+                <UIcon name="i-lucide-rotate-ccw" class="size-4" />
+                Reset
+              </button>
 
-                  <div class="mt-0.5 text-xs text-slate-400">
-                    {{ item.date }}
-                  </div>
-                </td>
-
-                <!-- Product -->
-                <td class="px-4 py-3.5">
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"
-                    >
-                      <UIcon name="i-lucide-package" class="h-4 w-4" />
-                    </div>
-
-                    <div class="min-w-0">
-                      <p class="truncate font-medium text-slate-800">
-                        {{ item.product }}
-                      </p>
-
-                      <p class="mt-0.5 text-xs text-slate-400">SKU: {{ item.sku }}</p>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Type -->
-                <td class="px-4 py-3.5">
-                  <span
-                    v-if="item.type === 'Stock In'"
-                    class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"
-                  >
-                    <UIcon name="i-lucide-arrow-down-to-line" class="h-3.5 w-3.5" />
-                    Stock In
-                  </span>
-
-                  <span
-                    v-else
-                    class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700"
-                  >
-                    <UIcon name="i-lucide-arrow-up-from-line" class="h-3.5 w-3.5" />
-                    Stock Out
-                  </span>
-                </td>
-
-                <!-- Quantity -->
-                <td class="px-4 py-3.5 text-center">
-                  <span
-                    :class="[
-                      'font-bold',
-                      item.type === 'Stock In' ? 'text-emerald-600' : 'text-rose-600',
-                    ]"
-                  >
-                    {{ item.type === 'Stock In' ? '+' : '-' }}{{ item.quantity }}
-                  </span>
-                </td>
-
-                <!-- Stock -->
-                <td class="px-4 py-3.5">
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-slate-700">
-                      {{ item.before }}
-                    </span>
-
-                    <UIcon name="i-lucide-arrow-right" class="h-3.5 w-3.5 text-slate-400" />
-
-                    <span class="font-bold text-slate-900">
-                      {{ item.after }}
-                    </span>
-                  </div>
-                </td>
-
-                <!-- Reason -->
-                <td class="px-4 py-3.5">
-                  <div class="text-slate-700">
-                    {{ item.reason }}
-                  </div>
-
-                  <div class="mt-0.5 text-xs text-slate-400">
-                    {{ item.reference }}
-                  </div>
-                </td>
-
-                <!-- User -->
-                <td class="px-4 py-3.5">
-                  <div class="flex items-center gap-2">
-                    <div
-                      class="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary"
-                    >
-                      {{ item.user.charAt(0) }}
-                    </div>
-
-                    <span class="text-slate-700">
-                      {{ item.user }}
-                    </span>
-                  </div>
-                </td>
-
-                <!-- Status -->
-                <td class="px-4 py-3.5">
-                  <span
-                    class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"
-                  >
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    {{ item.status }}
-                  </span>
-                </td>
-
-                <!-- Action -->
-                <td class="px-4 py-3.5">
-                  <div class="flex justify-end">
-                    <button
-                      type="button"
-                      class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-                    >
-                      <UIcon name="i-lucide-eye" class="h-4 w-4" />
-                    </button>
-
-                    <button
-                      type="button"
-                      class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-                    >
-                      <UIcon name="i-lucide-more-horizontal" class="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Empty footer / Pagination -->
-        <div
-          class="flex flex-col gap-3 border-t border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <p class="text-xs text-slate-500">
-            Showing <span class="font-semibold text-slate-700">1–8</span> of
-            <span class="font-semibold text-slate-700">128</span> adjustments
-          </p>
-
-          <div class="flex items-center gap-1">
-            <button
-              type="button"
-              disabled
-              class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-300"
-            >
-              <UIcon name="i-lucide-chevron-left" class="h-4 w-4" />
-            </button>
-
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-white"
-            >
-              1
-            </button>
-
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50"
-            >
-              2
-            </button>
-
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50"
-            >
-              3
-            </button>
-
-            <span class="px-1 text-xs text-slate-400">...</span>
-
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50"
-            >
-              16
-            </button>
-
-            <button
-              type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
-            >
-              <UIcon name="i-lucide-chevron-right" class="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+              <button
+                type="submit"
+                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
+              >
+                <UIcon name="i-lucide-save" class="size-4" />
+                Save Adjustment
+              </button>
+            </div>
+          </form>
+        </section>
       </div>
-    </div>
+    </main>
   </Default>
 </template>
