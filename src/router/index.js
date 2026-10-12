@@ -298,10 +298,7 @@ router.beforeEach(async (to) => {
   }
 
   if (!auth.loggedIn) {
-    return {
-      name: 'login',
-      query: { redirect: to.fullPath },
-    }
+    return { name: 'login' }
   }
 
   return true
