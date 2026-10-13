@@ -53,22 +53,28 @@ export const useSaleStore = defineStore('sale', {
     },
 
     async getRecentSales() {
+      this.loading = true
       try {
         const response = await apiClient.get('/api/sales/recent')
         this.recent = response.data
         return response
       } catch (error) {
         throw error
+      } finally {
+        this.loading = false
       }
     },
 
     async getDraftsSales() {
+      this.loading = true
       try {
         const response = await apiClient.get('/api/sales/drafts')
         this.drafts = response.data
         return response
       } catch (error) {
         throw error
+      } finally {
+        this.loading = false
       }
     },
   },

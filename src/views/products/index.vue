@@ -23,7 +23,6 @@ onMounted(() => {
       <div class="mb-4 flex items-center justify-between gap-4">
         <div>
           <h1 class="text-sm font-semibold text-body">Products</h1>
-
           <p class="mt-1 text-sm text-body/60">Manage your products, stock, pricing and more.</p>
         </div>
 
@@ -33,7 +32,6 @@ onMounted(() => {
             class="flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm text-body transition hover:bg-slate-50"
           >
             <UIcon name="i-lucide-download" class="size-4" />
-
             Export
           </button>
 
@@ -49,7 +47,6 @@ onMounted(() => {
       </div>
 
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <!-- Total Products -->
         <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
           <div
             class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
@@ -58,9 +55,13 @@ onMounted(() => {
           </div>
           <div class="min-w-0">
             <p class="text-sm text-body/60">Total Products</p>
-            <div class="mt-0.5 flex items-center gap-2">
-              <span class="text-sm font-semibold text-body">1,240</span>
-              <span class="text-sm font-medium text-emerald-600">+12%</span>
+            <div v-if="products.stats?.total" class="mt-0.5 flex items-center gap-2">
+              <span class="text-sm font-semibold text-body">{{
+                products.stats?.total?.count
+              }}</span>
+              <span class="text-sm font-medium text-emerald-600"
+                >{{ products.stats?.total?.percentage }}%</span
+              >
             </div>
             <p class="mt-0.5 text-xs text-body/40">vs last month</p>
           </div>
@@ -73,11 +74,15 @@ onMounted(() => {
           >
             <UIcon name="i-lucide-triangle-alert" class="size-5" />
           </div>
-          <div class="min-w-0">
+          <div v-if="products.stats?.low_stock" class="min-w-0">
             <p class="text-sm text-body/60">Low Stock</p>
             <div class="mt-0.5 flex items-center gap-2">
-              <span class="text-sm font-semibold text-body">28</span>
-              <span class="text-sm font-medium text-emerald-600">+5%</span>
+              <span class="text-sm font-semibold text-body">{{
+                products.stats?.low_stock?.count
+              }}</span>
+              <span class="text-sm font-medium text-emerald-600"
+                >{{ products.stats?.low_stock?.percentage }}%</span
+              >
             </div>
             <p class="mt-0.5 text-xs text-body/40">vs last month</p>
           </div>
@@ -90,11 +95,15 @@ onMounted(() => {
           >
             <UIcon name="i-lucide-circle-x" class="size-5" />
           </div>
-          <div class="min-w-0">
+          <div v-if="products.stats?.out_of_stock" class="min-w-0">
             <p class="text-sm text-body/60">Out of Stock</p>
             <div class="mt-0.5 flex items-center gap-2">
-              <span class="text-sm font-semibold text-body">12</span>
-              <span class="text-sm font-medium text-emerald-600">+8%</span>
+              <span class="text-sm font-semibold text-body">{{
+                products.stats?.out_of_stock?.count
+              }}</span>
+              <span class="text-sm font-medium text-emerald-600"
+                >{{ products.stats?.out_of_stock?.percentage }}%</span
+              >
             </div>
             <p class="mt-0.5 text-xs text-body/40">vs last month</p>
           </div>
@@ -107,22 +116,23 @@ onMounted(() => {
           >
             <UIcon name="i-lucide-tag" class="size-5" />
           </div>
-          <div class="min-w-0">
+          <div v-if="products.stats?.active" class="min-w-0">
             <p class="text-sm text-body/60">Active Products</p>
             <div class="mt-0.5 flex items-center gap-2">
-              <span class="text-sm font-semibold text-body">1,180</span>
-              <span class="text-sm font-medium text-emerald-600">+10%</span>
+              <span class="text-sm font-semibold text-body">{{
+                products.stats?.active?.count
+              }}</span>
+              <span class="text-sm font-medium text-emerald-600"
+                >{{ products.stats?.active?.percentage }}%</span
+              >
             </div>
             <p class="mt-0.5 text-xs text-body/40">vs last month</p>
           </div>
         </div>
       </div>
 
-      <section class="overflow-hidden rounded-lg border border-slate-200 bg-white px-4 py-6">
-        <div
-          class="flex flex-col gap-2 border-b border-slate-100 p-2 lg:flex-row lg:items-center lg:justify-between"
-        >
-          <!-- Search -->
+      <section class="overflow-hidden rounded border border-border bg-white px-4 py-6">
+        <div class="flex items-center justify-between gap-2 border-b border-border p-2">
           <div class="relative w-full lg:max-w-sm">
             <UIcon
               name="i-lucide-search"

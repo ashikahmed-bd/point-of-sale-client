@@ -7,7 +7,6 @@ export const useCartStore = defineStore('cart', {
     holding: false,
     errors: {},
     cart: null,
-    draft: false,
   }),
 
   persist: {

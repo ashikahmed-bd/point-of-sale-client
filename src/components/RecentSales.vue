@@ -14,13 +14,6 @@ onMounted(async () => {
 
 <template>
   <UModal
-    title="Recent Sales"
-    description="View your recent sales"
-    :close="{
-      color: 'primary',
-      variant: 'outline',
-      class: 'rounded-full',
-    }"
     :ui="{
       content: 'z-30 sm:max-w-5xl',
     }"
@@ -33,102 +26,126 @@ onMounted(async () => {
       <span>Recent</span>
     </button>
 
-    <template #body>
-      <div class="overflow-x-auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Invoice</th>
-              <th>Customer</th>
-              <th>Items</th>
-              <th>Total</th>
-              <th>Date</th>
-              <th>Payment</th>
-              <th>Status</th>
-              <th class="text-right">Action</th>
-            </tr>
-          </thead>
+    <template #content="{ close }">
+      <div class="px-4">
+        <div class="flex items-center justify-between gap-3 py-2.5 border-b border-border">
+          <div class="min-w-0">
+            <h3 class="flex items-center gap-2">
+              <span class="text-base font-semibold text-heading">Recent Sales</span>
+              <UIcon
+                name="i-lucide-refresh-cw"
+                class="size-4 text-primary cursor-pointer transition-transform"
+                :class="{ 'animate-spin': saleStore.loading }"
+                @click="!saleStore.loading && saleStore.getRecentSales()"
+              />
+            </h3>
+            <p class="text-sm text-body">View your recent sales</p>
+          </div>
 
-          <tbody>
-            <tr v-for="sale in recent.data" :key="sale.id">
-              <td>
-                <div class="font-medium text-body">#{{ sale.invoice_no }}</div>
-                <div class="mt-0.5 text-xs text-muted">
-                  {{ sale.account?.name }}
-                </div>
-              </td>
+          <button
+            type="button"
+            class="flex size-8 items-center justify-center rounded-full border border-primary/30 text-primary transition hover:bg-primary hover:text-white"
+            @click="close"
+          >
+            <UIcon name="i-lucide-x" class="size-4" />
+          </button>
+        </div>
+        <div class="overflow-x-auto py-2.5">
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Date</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th class="text-right">Action</th>
+              </tr>
+            </thead>
 
-              <td>
-                <div class="font-medium text-body">
-                  {{ sale.customer?.name ?? 'Walk-in Customer' }}
-                </div>
+            <tbody>
+              <tr v-for="sale in recent.data" :key="sale.id">
+                <td>
+                  <div class="font-medium text-body">#{{ sale.invoice_no }}</div>
+                  <div class="mt-0.5 text-xs text-muted">
+                    {{ sale.account?.name }}
+                  </div>
+                </td>
 
-                <div v-if="sale.customer?.phone" class="text-xs text-muted">
-                  {{ sale.customer.phone }}
-                </div>
-              </td>
+                <td>
+                  <div class="font-medium text-body">
+                    {{ sale.customer?.name ?? 'Walk-in Customer' }}
+                  </div>
 
-              <td>
-                <span class="text-sm text-body">
-                  {{ sale.items?.length ?? 0 }}
-                </span>
+                  <div v-if="sale.customer?.phone" class="text-xs text-muted">
+                    {{ sale.customer.phone }}
+                  </div>
+                </td>
 
-                <span class="ml-1 text-sm text-muted">
-                  {{ (sale.items?.length ?? 0) === 1 ? 'Item' : 'Items' }}
-                </span>
-              </td>
+                <td>
+                  <span class="text-sm text-body">
+                    {{ sale.items?.length ?? 0 }}
+                  </span>
 
-              <td>
-                <div class="font-semibold text-body">
-                  {{ $currency(sale.total) }}
-                </div>
+                  <span class="ml-1 text-sm text-muted">
+                    {{ (sale.items?.length ?? 0) === 1 ? 'Item' : 'Items' }}
+                  </span>
+                </td>
 
-                <div v-if="Number(sale.due_amount) > 0" class="text-xs text-error">
-                  Due {{ $currency(sale.due_amount) }}
-                </div>
-              </td>
+                <td>
+                  <div class="font-semibold text-body">
+                    {{ $currency(sale.total) }}
+                  </div>
 
-              <td>
-                <span class="text-sm text-body">
-                  {{ $date(sale.created_at) }}
-                </span>
-              </td>
-              <td>
-                <span
-                  class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 capitalize"
-                >
-                  {{ sale.payment }}
-                </span>
-              </td>
+                  <div v-if="Number(sale.due_amount) > 0" class="text-xs text-error">
+                    Due {{ $currency(sale.due_amount) }}
+                  </div>
+                </td>
 
-              <td>
-                <span
-                  class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize"
-                  :class="{
-                    'bg-green-50 text-green-700': sale.status === 'completed',
-                    'bg-yellow-50 text-yellow-700': sale.status === 'pending',
-                    'bg-red-50 text-red-700': sale.status === 'cancelled',
-                    'bg-gray-100 text-gray-700': !['completed', 'pending', 'cancelled'].includes(
-                      sale.status,
-                    ),
-                  }"
-                >
-                  {{ sale.status }}
-                </span>
-              </td>
+                <td>
+                  <span class="text-sm text-body">
+                    {{ $date(sale.created_at) }}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 capitalize"
+                  >
+                    {{ sale.payment }}
+                  </span>
+                </td>
 
-              <td class="text-right">
-                <UButton
-                  size="sm"
-                  color="primary"
-                  variant="soft"
-                  icon="i-lucide-eye"
-                  label="View"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <td>
+                  <span
+                    class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize"
+                    :class="{
+                      'bg-green-50 text-green-700': sale.status === 'completed',
+                      'bg-yellow-50 text-yellow-700': sale.status === 'pending',
+                      'bg-red-50 text-red-700': sale.status === 'cancelled',
+                      'bg-gray-100 text-gray-700': !['completed', 'pending', 'cancelled'].includes(
+                        sale.status,
+                      ),
+                    }"
+                  >
+                    {{ sale.status }}
+                  </span>
+                </td>
+
+                <td class="text-right">
+                  <UButton
+                    size="sm"
+                    color="primary"
+                    variant="soft"
+                    icon="i-lucide-eye"
+                    label="View"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </template>
   </UModal>

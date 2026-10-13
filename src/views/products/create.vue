@@ -35,7 +35,7 @@ const form = reactive({
   max_stock: 100,
 
   track_stock: true,
-  allow_backorder: false,
+  allow_backorder: true,
 
   status: 'active',
 
@@ -192,7 +192,7 @@ const generateVariants = () => {
     max_stock: form.max_stock ?? null,
 
     track_stock: form.track_stock ?? true,
-    allow_backorder: form.allow_backorder ?? false,
+    allow_backorder: form.allow_backorder ?? true,
 
     is_default: index === 0,
     active: true,
