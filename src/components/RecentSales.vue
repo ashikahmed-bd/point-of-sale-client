@@ -20,7 +20,7 @@ onMounted(async () => {
   >
     <button
       type="button"
-      class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+      class="flex items-center gap-2 text-sm font-medium text-body transition hover:text-primary"
     >
       <UIcon name="i-lucide-file-clock" class="size-4" />
       <span>Recent</span>
@@ -51,7 +51,8 @@ onMounted(async () => {
           </button>
         </div>
         <div class="overflow-x-auto py-2.5">
-          <table>
+          <EmptyState v-if="!recent.data?.length" />
+          <table v-else>
             <thead>
               <tr>
                 <th>Invoice</th>

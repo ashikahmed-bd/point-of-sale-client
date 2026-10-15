@@ -34,9 +34,10 @@ export const useSaleStore = defineStore('sale', {
     async store(payload) {
       this.loading = true
       try {
-        return await apiClient.post('/api/sales', payload)
+        const response = await apiClient.post('/api/sales', payload)
+        return response.data
       } catch (error) {
-        throw error
+        throw error.response?.data ?? error
       } finally {
         this.loading = false
       }

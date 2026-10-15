@@ -27,7 +27,7 @@ const props = defineProps({
     class="flex flex-col items-center justify-center rounded-2xl bg-white px-4 py-10 text-center"
   >
     <div class="mb-4 flex size-16 items-center justify-center rounded-full bg-light">
-      <Icon :name="props.icon" class="size-8 text-body" />
+      <UIcon :name="props.icon" class="size-8 text-body" />
     </div>
 
     <h2 class="text-lg font-semibold text-title">{{ props.title }}</h2>

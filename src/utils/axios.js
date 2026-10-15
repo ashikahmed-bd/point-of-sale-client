@@ -4,7 +4,7 @@ import { useCartStore } from '@/stores/cart'
 import router from '@/router'
 
 const apiClient = axios.create({
-  baseURL: 'https://pos.gazisportsbd.com', // https://pos.gazisportsbd.com http://localhost:8000
+  baseURL: 'http://localhost:8000', // https://pos.gazisportsbd.com http://localhost:8000
   withCredentials: false,
 })
 

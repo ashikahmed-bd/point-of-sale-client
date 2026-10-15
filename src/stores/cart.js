@@ -7,6 +7,7 @@ export const useCartStore = defineStore('cart', {
     holding: false,
     errors: {},
     cart: null,
+    dialog: false,
   }),
 
   persist: {
@@ -20,14 +21,10 @@ export const useCartStore = defineStore('cart', {
       try {
         const response = await apiClient.get('/api/cart')
 
-        if (response.status >= 200 && response.status < 300) {
-          this.cart = response.data?.data
-          return response.data?.data
-        }
+        this.cart = response.data?.data
+        return response.data?.data
       } catch (error) {
-        if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors)
-        }
+        throw error.reponse.data ?? error
       } finally {
         this.loading = false
       }
@@ -40,14 +37,23 @@ export const useCartStore = defineStore('cart', {
           product_id: product.id,
           quantity: 1,
         })
-
-        if (response.status === 200) {
-          return Promise.resolve(response.data)
-        }
+        return response
       } catch (error) {
-        if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors)
-        }
+        throw error.reponse ?? error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async update(item, payload) {
+      this.loading = true
+      try {
+        const response = await apiClient.put(`/api/cart/items/${item}`, payload)
+        this.dialog = false
+
+        return response
+      } catch (error) {
+        throw error.reponse ?? error
       } finally {
         this.loading = false
       }
@@ -56,24 +62,20 @@ export const useCartStore = defineStore('cart', {
     async increment(item) {
       try {
         const response = await apiClient.post(`/api/cart/items/${item}/increment`)
-
         await this.getCart()
-
-        return response
+        return response.data
       } catch (error) {
-        throw error.response
+        throw error.response.data ?? error
       }
     },
 
     async decrement(item) {
       try {
         const response = await apiClient.post(`/api/cart/items/${item}/decrement`)
-
         await this.getCart()
-
-        return response
+        return response.data
       } catch (error) {
-        throw error.response
+        throw error.response.data ?? error
       }
     },
 
@@ -81,12 +83,9 @@ export const useCartStore = defineStore('cart', {
       try {
         const response = await apiClient.delete(`/api/cart/items/${item}`)
         await this.getCart()
-
-        return response
+        return response.data
       } catch (error) {
-        if (error.reponse) {
-          throw error.response
-        }
+        throw error.response.data ?? error
       }
     },
 
@@ -94,14 +93,9 @@ export const useCartStore = defineStore('cart', {
       this.loading = true
       try {
         const response = await apiClient.patch(`/api/cart/discount`, payload)
-
-        if (response.status === 200) {
-          return Promise.resolve(response.data)
-        }
+        return response.data
       } catch (error) {
-        if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors)
-        }
+        throw error.reponse.data ?? error
       } finally {
         this.loading = false
       }
@@ -114,13 +108,9 @@ export const useCartStore = defineStore('cart', {
           shipping: Number(payload),
         })
 
-        if (response.status === 200) {
-          return Promise.resolve(response.data)
-        }
+        return response.data
       } catch (error) {
-        if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors)
-        }
+        throw error.reponse.data ?? error
       } finally {
         this.loading = false
       }
@@ -154,12 +144,10 @@ export const useCartStore = defineStore('cart', {
 
         return response.data
       } catch (error) {
-        throw error
+        throw error.reponse.data ?? error
       } finally {
         this.holding = false
       }
     },
-
-    async resumeDraft() {},
   },
 })

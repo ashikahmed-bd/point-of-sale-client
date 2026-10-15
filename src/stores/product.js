@@ -6,27 +6,22 @@ export const useProductStore = defineStore('product', {
     loading: false,
     errors: {},
     products: [],
+    product: null,
   }),
 
   getters: {},
 
   actions: {
-    async all(page) {
+    async all(search = {}) {
       this.loading = true
       try {
         const response = await apiClient.get('/api/products', {
-          params: {
-            page: page,
-          },
+          params: search,
         })
-        if (response.status === 200) {
-          this.products = response.data
-          return Promise.resolve(response)
-        }
+        this.products = response.data
+        return response.data
       } catch (error) {
-        if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors)
-        }
+        throw error.reponse ?? error
       } finally {
         this.loading = false
       }
@@ -40,16 +35,11 @@ export const useProductStore = defineStore('product', {
             'Content-Type': 'multipart/form-data',
           },
         })
-        if (response.status === 201) {
-          this.product = response.data
-          toast.success(response.data.message)
-          return Promise.resolve(response)
-        }
+
+        this.product = response.data
+        return response
       } catch (error) {
-        if (error.reponse) {
-          toast.error(error.response.data.message)
-          return Promise.reject(error.reponse.data.errors)
-        }
+        throw error.reponse ?? error
       } finally {
         this.loading = false
       }
@@ -57,15 +47,11 @@ export const useProductStore = defineStore('product', {
 
     async show(product) {
       try {
-        const response = await apiClient.get(`/api/v1/products/${product}`)
-        if (response.status === 200) {
-          this.product = response.data
-          return Promise.resolve(response.data)
-        }
+        const response = await apiClient.get(`/api/products/${product}`)
+        this.product = response.data?.data
+        return response
       } catch (error) {
-        if (error.reponse) {
-          return Promise.reject(error.reponse.data.errors)
-        }
+        throw error.reponse ?? error
       }
     },
 
@@ -106,6 +92,21 @@ export const useProductStore = defineStore('product', {
         }
 
         toast.error(error.response?.data?.message || 'Something went wrong')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async search(search = {}) {
+      this.loading = true
+      try {
+        const response = await apiClient.get('/api/products/search', {
+          params: search,
+        })
+        this.products = response.data
+        return response.data
+      } catch (error) {
+        throw error
       } finally {
         this.loading = false
       }

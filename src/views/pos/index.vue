@@ -1,4 +1,5 @@
 <script setup>
+import CartUpdate from '@/components/cart/CartUpdate.vue'
 import DraftSales from '@/components/DraftSales.vue'
 import ProductCard from '@/components/ProductCard.vue'
 import RecentSales from '@/components/RecentSales.vue'
@@ -11,9 +12,11 @@ import { useProductStore } from '@/stores/product'
 import { useSaleStore } from '@/stores/sale'
 import { storeToRefs } from 'pinia'
 import { onMounted, reactive } from 'vue'
-import { RouterLink } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
-const authStore = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+
 const categoryStore = useCategoryStore()
 const brandStore = useBrandStore()
 const productStore = useProductStore()
@@ -29,6 +32,13 @@ const { products } = storeToRefs(productStore)
 const { cart } = storeToRefs(cartStore)
 const { customers } = storeToRefs(customerStore)
 
+const search = reactive({
+  category_id: route.query.category_id ?? '',
+  brand_id: route.query.brand_id ?? '',
+  keywords: '',
+  page: 1,
+})
+
 const loadCategories = async () => {
   await categoryStore.all()
 }
@@ -38,18 +48,12 @@ const loadBrands = async () => {
 }
 
 const loadProducts = async () => {
-  await productStore.all()
+  await productStore.search(search)
 }
 
 const loadCart = async () => {
   await cartStore.getCart()
 }
-
-const search = reactive({
-  category_id: '',
-  brand_id: '',
-  keywords: '',
-})
 
 const customer = reactive({
   name: '',
@@ -116,12 +120,10 @@ const placeOrder = async () => {
   try {
     const response = await saleStore.store(form)
 
-    const sale = response.data.data
-
-    console.log(sale)
+    console.log(response.data)
 
     if (printWindow) {
-      printInvoice(sale, printWindow)
+      printInvoice(response.data, printWindow)
     } else {
       toast.add({
         title: 'Please allow popups for this site.',
@@ -133,6 +135,12 @@ const placeOrder = async () => {
     // cartStore.$reset()
     // await cartStore.getCart()
   } catch (error) {
+    console.log('Error:', error)
+    toast.add({
+      title: error.message,
+      color: 'error',
+    })
+
     if (printWindow && !printWindow.closed) {
       printWindow.close()
     }
@@ -146,14 +154,35 @@ const placeOrder = async () => {
   }
 }
 
+const selectCategory = async (category) => {
+  search.category_id = category.id ?? ''
+  await router.push({
+    query: {
+      ...route.query,
+      category_id: category.id ?? '',
+    },
+  })
+
+  loadProducts()
+}
+
+const selectBrand = (brand) => {
+  search.brand_id = brand.id ?? ''
+  router.push({
+    query: {
+      ...route.query,
+      brand_id: brand.id ?? '',
+    },
+  })
+  loadProducts()
+}
+
 onMounted(async () => {
   loadCategories()
   loadBrands()
   loadProducts()
   loadCart()
   await customerStore.all()
-
-  form.customer_id = customerStore.customer?.id ?? null
 })
 
 const printInvoice = (sale, printWindow) => {
@@ -338,13 +367,13 @@ const printInvoice = (sale, printWindow) => {
       <!-- Items -->
       <tr>
         <td colspan="4" style="padding: 0; border-bottom: none">
-          <table>
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
             <thead>
               <tr>
-                <th style="text-align: left">Item</th>
-                <th style="width: 35px; text-align: center">Qty</th>
-                <th style="width: 55px; text-align: center">Tax</th>
-                <th style="width: 75px; text-align: right">Total</th>
+                <th style="text-align: left; padding: 6px 4px 6px 0;">Item</th>
+                <th style="width: 65px; text-align: center; padding: 6px 4px;">Price</th>
+                <th style="width: 40px; text-align: center; padding: 6px 4px;">Tax</th>
+                <th style="width: 75px; text-align: right; padding: 6px 0 6px 4px;">Total</th>
               </tr>
             </thead>
 
@@ -353,60 +382,60 @@ const printInvoice = (sale, printWindow) => {
                 .map(
                   (item) => `
               <tr>
-                <td
-                  style="padding: 7px 4px 7px 0; border-bottom: 1px dashed #ccc"
-                >
-                  <span
-                    style="
-                      display: block;
-                      font-weight: 600;
-                      font-size: 11px;
-                      line-height: 1.4;
-                    "
-                  >
+                <td style="padding: 8px 4px 8px 0; border-bottom: 1px dashed #ccc; overflow: hidden;">
+                  <span style="
+                    display: block;
+                    font-weight: 600;
+                    font-size: 11px;
+                    line-height: 1.4;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  ">
                     ${item.name}
                   </span>
 
-                  <span
-                    style="
-                      display: block;
-                      margin-top: 2px;
-                      font-size: 10px;
-                      color: #666;
-                    "
-                  >
-                    ${item.price} x ${item.quantity}
+                  <span style="
+                    display: block;
+                    margin-top: 2px;
+                    font-size: 10px;
+                    color: #666;
+                    overflow-wrap: anywhere;
+                  ">
+                    S/N: ${item.serial_number ?? 'N/A'}
                   </span>
                 </td>
 
-                <td
-                  style="
-                    text-align: center;
-                    white-space: nowrap;
-                    border-bottom: 1px dashed #ccc;
-                  "
-                >
-                  ${item.quantity}
+                <td style="
+                  text-align: center;
+                  white-space: nowrap;
+                  border-bottom: 1px dashed #ccc;
+                  padding: 8px 4px;
+                  font-size: 10px;
+                ">
+                  ${item.price} x ${item.quantity}
                 </td>
 
-                <td
-                  style="
-                    text-align: center;
-                    white-space: nowrap;
-                    border-bottom: 1px dashed #ccc;
-                  "
-                >
+                <td style="
+                  text-align: center;
+                  white-space: nowrap;
+                  border-bottom: 1px dashed #ccc;
+                  color: #dc2626;
+                  font-weight: 600;
+                  padding: 8px 4px;
+                  font-size: 10px;
+                ">
                   ${item.tax}
                 </td>
 
-                <td
-                  style="
-                    text-align: right;
-                    white-space: nowrap;
-                    font-weight: 600;
-                    border-bottom: 1px dashed #ccc;
-                  "
-                >
+                <td style="
+                  text-align: right;
+                  white-space: nowrap;
+                  font-weight: 600;
+                  border-bottom: 1px dashed #ccc;
+                  padding: 8px 0 8px 4px;
+                  font-size: 10px;
+                ">
                   ${item.total}
                 </td>
               </tr>
@@ -544,106 +573,176 @@ const printInvoice = (sale, printWindow) => {
 
 <template>
   <div class="min-h-dvh bg-slate-200">
-    <main class="grid min-h-0 grid-cols-1 gap-3 px-3 py-3 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <section class="flex min-h-0 min-w-0 flex-col rounded-xl bg-white">
-        <header class="sticky top-0 z-10 rounded-t-xl border-b bg-white">
-          <div class="flex items-center justify-between gap-3 px-4 py-3">
-            <div v-if="authStore.store" class="">
-              <div class="flex w-full items-center gap-2">
-                <UIcon name="i-lucide-store" class="size-4 text-body" />
+    <header
+      class="sticky top-0 z-50 flex items-center gap-4 py-2.5 border-b border-border bg-white px-4"
+    >
+      <div class="flex shrink-0 items-center gap-2.5">
+        <div class="flex h-8 w-8 items-center justify-center rounded-md bg-info text-white">
+          <UIcon name="i-lucide-shopping-bag" class="h-5 w-5" />
+        </div>
+        <span class="text-lg font-bold tracking-tight text-heading"> POS </span>
+      </div>
 
-                <span class="flex-1 truncate">
-                  {{ authStore.store?.name }}
-                </span>
-              </div>
-            </div>
+      <div class="mx-auto hidden max-w-sm flex-1 md:block">
+        <div class="relative">
+          <UIcon
+            name="i-lucide-search"
+            class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-body"
+          />
 
-            <div class="flex items-center gap-2">
-              <RouterLink
-                :to="{ name: 'home' }"
-                class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
-              >
-                <UIcon name="i-lucide-house" class="size-4" />
-                <span class="hidden sm:inline">Home</span>
-              </RouterLink>
+          <input
+            type="search"
+            v-model="search.keywords"
+            @input="
+              $router
+                .replace({
+                  query: {
+                    ...$route.query,
+                    keywords: search.keywords ?? '',
+                  },
+                })
+                .then(() => loadProducts())
+            "
+            placeholder="Search product by name, SKU, barcode or scan..."
+            class="w-full rounded border border-border bg-muted py-2.5 pl-9 pr-10 text-xs text-body outline-none transition placeholder:text-slate-500 focus:border-primary focus:bg-white focus:ring-2 focus:ring-info/10"
+          />
 
-              <DraftSales />
+          <UIcon
+            name="i-lucide-scan-barcode"
+            class="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-body"
+          />
+        </div>
+      </div>
 
-              <RecentSales />
+      <div class="hidden items-center gap-4 lg:flex">
+        <DraftSales />
 
+        <RecentSales />
+
+        <button
+          type="button"
+          @click="holdCart"
+          :disabled="cartStore.holding"
+          class="flex items-center gap-2 text-sm font-medium text-body transition hover:text-primary"
+        >
+          <UIcon
+            :name="cartStore.holding ? 'i-lucide-loader' : 'i-lucide-pause-circle'"
+            class="size-4"
+            :class="{ 'animate-spin': cartStore.holding }"
+          />
+          <span>Hold</span>
+        </button>
+      </div>
+
+      <div class="flex shrink-0 items-center gap-3">
+        <button
+          type="button"
+          class="flex h-9 items-center gap-2 rounded-md border border-border bg-white px-3 transition hover:bg-muted"
+        >
+          <UIcon name="i-lucide-store" class="h-5 w-5 text-body" />
+
+          <div class="hidden text-left sm:block">
+            <p class="text-xs font-semibold leading-4 text-heading">Main Store</p>
+            <p class="text-2xs leading-3 text-body">Dhaka</p>
+          </div>
+
+          <UIcon name="i-lucide-chevron-down" class="ml-1 h-4 w-4 text-body" />
+        </button>
+
+        <button
+          type="button"
+          class="flex items-center gap-2 rounded-md py-1 pl-1 pr-2 transition hover:bg-muted"
+        >
+          <div
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-info text-sm font-semibold text-white"
+          >
+            A
+          </div>
+
+          <div class="hidden text-left sm:block">
+            <p class="text-xs font-semibold leading-4 text-heading">Admin</p>
+            <p class="text-2xs leading-3 text-body">Cashier</p>
+          </div>
+        </button>
+      </div>
+    </header>
+
+    <div class="grid min-h-screen grid-cols-[180px_minmax(0,1fr)_300px] gap-4">
+      <aside class="bg-white px-2.5 py-3.5 sticky top-14 max-h-[calc(100dvh-1rem)]">
+        <nav class="space-y-1">
+          <RouterLink
+            :to="{ name: 'pos' }"
+            @click="loadProducts"
+            class="flex h-8 w-full items-center gap-2.5 rounded-md bg-info/10 px-2.5 text-left text-xs font-semibold text-info"
+          >
+            <UIcon name="i-lucide-layout-grid" class="size-4 shrink-0" />
+            All Products
+          </RouterLink>
+
+          <button
+            v-for="category in categories.data"
+            :key="category.id"
+            @click="selectCategory(category)"
+            class="flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-xs text-body transition hover:bg-muted"
+          >
+            <img :src="category.image_url" :alt="category.name" class="size-6" />
+            {{ category.name }}
+          </button>
+        </nav>
+      </aside>
+
+      <div class="min-w-0 py-4 space-y-4">
+        <div class="sticky top-14 py-2.5">
+          <div class="flex items-center gap-4">
+            <button
+              type="button"
+              @click="
+                $router.push({
+                  query: {
+                    ...$route.query,
+                    brand_id: '',
+                  },
+                })
+              "
+              class="whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-medium transition-colors"
+              :class="
+                !route.query.brand_id
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-border bg-white text-body hover:bg-muted'
+              "
+            >
+              All
+            </button>
+            <UCarousel v-slot="{ item }" :items="brands.data" :ui="{ item: 'basis-auto' }">
               <button
                 type="button"
-                @click="holdCart"
-                :disabled="cartStore.holding"
-                class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                @click="selectBrand(item)"
+                class="whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-medium transition-colors"
+                :class="
+                  route.query.brand_id == item.id
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-border bg-white text-body hover:bg-muted'
+                "
               >
-                <UIcon
-                  :name="cartStore.holding ? 'i-lucide-loader' : 'i-lucide-pause-circle'"
-                  class="size-4"
-                  :class="{ 'animate-spin': cartStore.holding }"
-                />
-                <span>Hold</span>
+                {{ item.name }}
               </button>
-            </div>
-          </div>
-        </header>
-
-        <div class="shrink-0 px-4 py-2.5">
-          <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <select v-model="search.category_id" class="form__select">
-              <option value="">All Categories</option>
-              <option v-for="category in categories.data" :key="category.id" :value="category.id">
-                {{ category.name }}
-              </option>
-            </select>
-
-            <select v-model="search.brand_id" class="form__select">
-              <option value="">All Brands</option>
-              <option v-for="brand in brands.data" :key="brand.id" :value="brand.id">
-                {{ brand.name }}
-              </option>
-            </select>
-
-            <div class="relative sm:col-span-2 lg:col-span-1">
-              <UIcon
-                name="i-lucide-search"
-                class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
-              />
-
-              <input
-                type="search"
-                v-model="search.keywords"
-                placeholder="Search products..."
-                class="form__control pl-9"
-              />
-            </div>
+            </UCarousel>
           </div>
         </div>
 
-        <div class="min-h-0 flex-1 overflow-y-auto px-4 py-2 scrollbar-none">
+        <main class="bg-overflow-y-auto px-4 py-4 scrollbar-none">
           <div
             class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
           >
             <ProductCard v-for="product in products.data" :key="product.id" :product="product" />
           </div>
-        </div>
-      </section>
+        </main>
+      </div>
 
-      <!-- Cart -->
-      <aside
-        class="sticky top-2 flex min-h-0 max-h-[calc(100dvh-1rem)] flex-col rounded-xl bg-white px-4 py-2.5"
-      >
+      <aside class="bg-white px-4 sticky top-2 max-h-[calc(100dvh-1rem)]">
         <header class="shrink-0 border-b border-border py-2.5">
           <div class="flex items-center justify-between gap-2">
             <UModal
-              v-model:open="customerStore.dialog"
-              title="Select Customer"
-              description="Search and select a customer"
-              :close="{
-                color: 'primary',
-                variant: 'outline',
-                class: 'rounded-full',
-              }"
               :ui="{
                 content: 'z-30 sm:max-w-xl',
               }"
@@ -668,62 +767,91 @@ const printInvoice = (sale, printWindow) => {
                 </div>
               </button>
 
-              <template #body>
-                <div class="space-y-4">
-                  <UInput
-                    icon="i-lucide-search"
-                    placeholder="Search customer name or phone..."
-                    autofocus
-                    class="w-full"
-                  />
+              <template #content="{ close }">
+                <div class="px-4">
+                  <div
+                    class="flex items-center justify-between gap-3 py-2.5 border-b border-border"
+                  >
+                    <div class="min-w-0">
+                      <h3 class="flex items-center gap-2">
+                        <span class="text-base font-semibold text-heading">Select Customer</span>
+                        <UIcon
+                          name="i-lucide-refresh-cw"
+                          class="size-4 text-primary cursor-pointer transition-transform"
+                          :class="{ 'animate-spin': customerStore.loading }"
+                          @click="customerStore.all()"
+                        />
+                      </h3>
+                      <p class="text-sm text-body">Search and select a customer</p>
+                    </div>
 
-                  <div class="max-h-80 overflow-y-auto">
-                    <div class="space-y-1">
-                      <button
-                        v-for="customer in customers.data"
-                        :key="customer.id"
-                        type="button"
-                        class="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-slate-50"
-                        :class="{
-                          'bg-primary/5': form.customer_id === customer.id,
-                        }"
-                        @click="customerStore.selectCustomer(customer)"
-                      >
-                        <div class="flex min-w-0 items-center gap-3">
-                          <div
-                            class="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100"
-                          >
-                            <UIcon name="i-lucide-user" class="size-4 text-slate-500" />
+                    <button
+                      type="button"
+                      class="flex size-8 items-center justify-center rounded-full border border-primary/30 text-primary transition hover:bg-primary hover:text-white"
+                      @click="close"
+                    >
+                      <UIcon name="i-lucide-x" class="size-4" />
+                    </button>
+                  </div>
+
+                  <div class="space-y-4">
+                    <UInput
+                      icon="i-lucide-search"
+                      placeholder="Search customer name or phone..."
+                      autofocus
+                      class="w-full"
+                    />
+
+                    <div class="max-h-80 overflow-y-auto">
+                      <div class="space-y-1">
+                        <button
+                          v-for="customer in customers.data"
+                          :key="customer.id"
+                          type="button"
+                          class="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-slate-50"
+                          :class="{
+                            'bg-primary/5': form.customer_id === customer.id,
+                          }"
+                          @click="
+                            () => {
+                              customerStore.selectCustomer(customer)
+                              form.customer_id = customer.id
+                              close()
+                            }
+                          "
+                        >
+                          <div class="flex min-w-0 items-center gap-3">
+                            <div
+                              class="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100"
+                            >
+                              <UIcon name="i-lucide-user" class="size-4 text-slate-500" />
+                            </div>
+
+                            <div class="min-w-0">
+                              <p class="truncate text-sm font-medium text-slate-700">
+                                {{ customer.name }}
+                              </p>
+
+                              <p class="truncate text-xs text-slate-400">
+                                {{ customer.phone }}
+                              </p>
+                            </div>
                           </div>
+                          <UIcon
+                            v-if="form.customer_id === customer.id"
+                            name="i-lucide-circle-check-big"
+                            class="size-4 shrink-0 text-primary"
+                          />
+                        </button>
 
-                          <div class="min-w-0">
-                            <p class="truncate text-sm font-medium text-slate-700">
-                              {{ customer.name }}
-                            </p>
-
-                            <p class="truncate text-xs text-slate-400">
-                              {{ customer.phone }}
-                            </p>
-                          </div>
+                        <div v-if="!customers.data?.length" class="py-8 text-center">
+                          <UIcon
+                            name="i-lucide-users-round"
+                            class="mx-auto mb-2 size-8 text-body"
+                          />
+                          <h4 class="text-sm font-medium text-heading">No customer found</h4>
+                          <p class="mt-1 text-xs text-body">Try another name or phone number</p>
                         </div>
-
-                        <UIcon
-                          v-if="form.customer_id === customer.id"
-                          name="i-lucide-check"
-                          class="size-4 shrink-0 text-primary"
-                        />
-                      </button>
-
-                      <!-- Empty -->
-                      <div v-if="!customers.data?.length" class="py-8 text-center">
-                        <UIcon
-                          name="i-lucide-users-round"
-                          class="mx-auto mb-2 size-8 text-slate-300"
-                        />
-
-                        <p class="text-sm font-medium text-slate-500">No customer found</p>
-
-                        <p class="mt-1 text-xs text-slate-400">Try another name or phone number</p>
                       </div>
                     </div>
                   </div>
@@ -861,7 +989,7 @@ const printInvoice = (sale, printWindow) => {
           </div>
         </header>
 
-        <div class="min-h-0 flex-1 overflow-y-auto py-2 scrollbar-none">
+        <div class="max-h-40 overflow-y-auto py-2 scrollbar-none">
           <div class="space-y-1">
             <template v-if="cart?.items?.length">
               <article
@@ -876,16 +1004,11 @@ const printInvoice = (sale, printWindow) => {
                         {{ item.name }}
                       </h3>
 
-                      <p class="mt-0.5 text-xs text-slate-400">
-                        {{ $currency(item.price) }} x {{ item.quantity }}
-
-                        <span
-                          v-if="item.tax_rate > 0"
-                          class="ml-1.5 before:mr-1.5 before:content-['·']"
-                        >
-                          {{ item.tax_rate }}% tax
-                        </span>
-                      </p>
+                      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                        <div v-for="(value, key) in item.meta" :key="key">
+                          <span v-if="key !== 'serials'"> {{ key }}: {{ value }} </span>
+                        </div>
+                      </div>
                     </div>
 
                     <button
@@ -923,7 +1046,44 @@ const printInvoice = (sale, printWindow) => {
                       </button>
                     </div>
 
-                    <span class="text-sm font-semibold"> {{ $currency(item.total) }} </span>
+                    <div class="flex items-center gap-4">
+                      <span class="text-sm text-body">
+                        {{ $currency(item.price) }} × {{ item.quantity }}
+                      </span>
+
+                      <span class="shrink-0 text-sm font-semibold text-heading">
+                        {{ $currency(item.total) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <CartUpdate v-if="cartStore.dialog" :item="item" />
+
+                  <!-- Serials -->
+                  <div class="rounded border border-border bg-slate-50 p-2">
+                    <div class="mb-1.5 flex items-center justify-between">
+                      <span class="text-xs font-medium text-body">
+                        Serial Numbers ({{ item.meta?.serials?.length ?? 0 }})
+                      </span>
+
+                      <button
+                        type="button"
+                        class="text-xs font-medium text-primary hover:text-primary/70"
+                        @click="cartStore.dialog = true"
+                      >
+                        Edit
+                      </button>
+                    </div>
+
+                    <div v-if="item.meta?.serials?.length" class="flex flex-wrap gap-1.5">
+                      <button
+                        v-for="serial in item.meta.serials"
+                        :key="serial"
+                        class="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
+                      >
+                        {{ serial.serial_number }}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </article>
@@ -956,7 +1116,7 @@ const printInvoice = (sale, printWindow) => {
               <input
                 type="text"
                 v-model="discount.amount"
-                placeholder="Enter discount"
+                placeholder="e.g. 10%"
                 class="w-full rounded border border-border bg-slate-50 py-2 pl-9 pr-16 text-sm text-body outline-none transition placeholder:text-slate-400"
               />
 
@@ -1101,6 +1261,6 @@ const printInvoice = (sale, printWindow) => {
           </button>
         </div>
       </aside>
-    </main>
+    </div>
   </div>
 </template>

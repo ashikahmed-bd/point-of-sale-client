@@ -7,7 +7,6 @@ export const useCustomerStore = defineStore('customer', {
     errors: {},
     customers: [],
     customer: null,
-    dialog: false,
   }),
 
   getters: {},
@@ -15,7 +14,6 @@ export const useCustomerStore = defineStore('customer', {
   actions: {
     async selectCustomer(customer) {
       this.customer = customer
-      this.dialog = false
     },
 
     async all() {

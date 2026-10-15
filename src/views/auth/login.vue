@@ -41,16 +41,14 @@ const submit = async () => {
 </script>
 
 <template>
-  <main class="max-w-5xl mx-auto px-4 py-8">
-    <div class="bg-white rounded-xl grid grid-cols-1 md:grid-cols-2 overflow-hidden">
-      <!-- LEFT -->
-      <div class="hidden md:flex flex-col justify-center items-center p-10 bg-gray-50">
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-xl grid grid-cols-1 md:grid-cols-2">
+      <div class="hidden md:flex flex-col justify-center items-center p-10">
         <img src="/auth.jpg" class="mb-6" />
         <h2 class="text-2xl font-bold text-center mb-2">Grow with Buyzin</h2>
         <p class="text-gray-500 text-center">Vendor & Admin dashboard access</p>
       </div>
 
-      <!-- RIGHT -->
       <div class="px-8 py-10">
         <h2 class="text-2xl font-bold mb-2">Sign In</h2>
         <p class="text-gray-500 mb-6">Welcome back!</p>
@@ -93,5 +91,5 @@ const submit = async () => {
         </p>
       </div>
     </div>
-  </main>
+  </div>
 </template>
