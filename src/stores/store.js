@@ -12,20 +12,46 @@ export const useStoreStore = defineStore('store', {
   getters: {},
 
   actions: {
+    async all() {
+      this.loading = true
+      try {
+        const response = await apiClient.get('/api/stores')
+        this.stores = response.data
+        return response.data
+      } catch (error) {
+        throw error.reponse ?? error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async search(keywords) {
+      this.loading = true
+      try {
+        const response = await apiClient.get('/api/stores/search', {
+          params: {
+            keywords: keywords,
+          },
+        })
+        this.stores = response.data
+        return response.data
+      } catch (error) {
+        throw error.reponse ?? error
+      } finally {
+        this.loading = false
+      }
+    },
+
     async switch(store) {
       this.loading = true
       try {
         const response = await apiClient.post('api/stores/switch', {
           store: store,
         })
-        if (response.status === 200) {
-          this.selected = response.data
-          return response.data
-        }
+        this.selected = response.data
+        return response.data
       } catch (error) {
-        if (error) {
-          return Promise.reject(error.response?.data?.errors)
-        }
+        throw error.reponse ?? error
       } finally {
         this.loading = false
       }

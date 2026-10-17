@@ -59,15 +59,9 @@ export const useProductStore = defineStore('product', {
       this.loading = true
       try {
         const response = await apiClient.put(`/api/v1/products/${product}`, payload)
-        if (response.status === 200) {
-          toast.success(response.data.message)
-          return Promise.resolve(response.data)
-        }
+        return response.data
       } catch (error) {
-        if (error.reponse) {
-          toast.error(error.response.data.message)
-          return Promise.reject(error.reponse.data.errors)
-        }
+        throw error.reponse ?? error
       } finally {
         this.loading = false
       }
@@ -77,21 +71,9 @@ export const useProductStore = defineStore('product', {
       this.loading = true
       try {
         const response = await apiClient.post(`/api/v1/products/${product}/media`, payload)
-        if (response.status === 200) {
-          toast.success(response.data.message)
-        }
+        return response.data
       } catch (error) {
-        if (error.response?.status === 422) {
-          this.errors = error.response.data.errors
-
-          Object.values(this.errors)
-            .flat()
-            .forEach((message) => toast.error(message))
-
-          return
-        }
-
-        toast.error(error.response?.data?.message || 'Something went wrong')
+        throw error.response ?? error
       } finally {
         this.loading = false
       }

@@ -206,7 +206,7 @@ const removeVariant = (index) => {
 
 <template>
   <Default>
-    <main class="space-y-4 p-4">
+    <main class="space-y-4">
       <header class="border-b border-slate-200">
         <div class="flex items-center justify-between gap-4">
           <div class="min-w-0">

@@ -41,29 +41,13 @@ const addToCart = async (product) => {
 
     new Audio('/pos.wav').play()
 
-    // Show success message
     toast.add({
       title: 'Success',
       description: response.data.message,
       color: 'success',
     })
   }
-
-  // if (product.has_variants || product.track_serial_number) {
-  //   cartStore.dialog = true
-  //   return
-  // }
 }
-
-const maxStock = computed(() => {
-  if (form.variant_id) {
-    const variant = props.product.variants?.find((item) => item.id === form.variant_id)
-
-    return variant?.stock ?? 0
-  }
-
-  return props.product.stock ?? 0
-})
 </script>
 
 <template>

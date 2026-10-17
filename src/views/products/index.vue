@@ -19,7 +19,7 @@ onMounted(() => {
 
 <template>
   <Default>
-    <main class="space-y-4 p-4">
+    <main class="space-y-4">
       <div class="mb-4 flex items-center justify-between gap-4">
         <div>
           <h1 class="text-sm font-semibold text-body">Products</h1>

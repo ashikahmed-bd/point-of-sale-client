@@ -8,6 +8,7 @@ export const useCartStore = defineStore('cart', {
     errors: {},
     cart: null,
     dialog: false,
+    item: null,
   }),
 
   persist: {
@@ -148,6 +149,11 @@ export const useCartStore = defineStore('cart', {
       } finally {
         this.holding = false
       }
+    },
+
+    async edit(item) {
+      this.dialog = true
+      this.item = item
     },
   },
 })

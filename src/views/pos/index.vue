@@ -577,9 +577,11 @@ const printInvoice = (sale, printWindow) => {
       class="sticky top-0 z-50 flex items-center gap-4 py-2.5 border-b border-border bg-white px-4"
     >
       <div class="flex shrink-0 items-center gap-2.5">
-        <div class="flex h-8 w-8 items-center justify-center rounded-md bg-info text-white">
-          <UIcon name="i-lucide-shopping-bag" class="h-5 w-5" />
-        </div>
+        <RouterLink to="/">
+          <div class="flex h-8 w-8 items-center justify-center rounded-md bg-info text-white">
+            <UIcon name="i-lucide-shopping-bag" class="h-5 w-5" />
+          </div>
+        </RouterLink>
         <span class="text-lg font-bold tracking-tight text-heading"> POS </span>
       </div>
 
@@ -740,7 +742,7 @@ const printInvoice = (sale, printWindow) => {
       </div>
 
       <aside class="bg-white px-4 sticky top-2 max-h-[calc(100dvh-1rem)]">
-        <header class="shrink-0 border-b border-border py-2.5">
+        <div class="shrink-0 border-b border-border py-2.5">
           <div class="flex items-center justify-between gap-2">
             <UModal
               :ui="{
@@ -987,9 +989,9 @@ const printInvoice = (sale, printWindow) => {
               </template>
             </UModal>
           </div>
-        </header>
+        </div>
 
-        <div class="max-h-40 overflow-y-auto py-2 scrollbar-none">
+        <div class="min-h-40 max-h-40 overflow-y-auto py-2 scrollbar-none">
           <div class="space-y-1">
             <template v-if="cart?.items?.length">
               <article
@@ -1057,7 +1059,7 @@ const printInvoice = (sale, printWindow) => {
                     </div>
                   </div>
 
-                  <CartUpdate v-if="cartStore.dialog" :item="item" />
+                  <CartUpdate v-if="cartStore.dialog && cartStore.item" :item="cartStore.item" />
 
                   <!-- Serials -->
                   <div class="rounded border border-border bg-slate-50 p-2">
@@ -1069,7 +1071,7 @@ const printInvoice = (sale, printWindow) => {
                       <button
                         type="button"
                         class="text-xs font-medium text-primary hover:text-primary/70"
-                        @click="cartStore.dialog = true"
+                        @click="cartStore.edit(item)"
                       >
                         Edit
                       </button>

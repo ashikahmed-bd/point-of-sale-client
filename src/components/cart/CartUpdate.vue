@@ -2,10 +2,11 @@
 import { useCartStore } from '@/stores/cart'
 import { useProductStore } from '@/stores/product'
 import { storeToRefs } from 'pinia'
-import { onMounted, reactive } from 'vue'
+import { watch, reactive } from 'vue'
 
 const cartStore = useCartStore()
 const productStore = useProductStore()
+
 const { product } = storeToRefs(productStore)
 
 const props = defineProps({
@@ -23,18 +24,39 @@ const form = reactive({
   },
 })
 
+// Update form when selected cart item changes
+watch(
+  () => props.item,
+  (item) => {
+    if (!item) return
+
+    form.quantity = item.quantity ?? 1
+    form.variant_id = item.variant_id ?? null
+    form.meta = {
+      ...(item.meta ?? {}),
+      serials: item.meta?.serials ?? [],
+    }
+  },
+  { immediate: true },
+)
+
+// Load product whenever selected product ID changes
+watch(
+  () => cartStore.item?.product?.id,
+  async (product) => {
+    if (!cartStore.dialog || !product) return
+
+    await productStore.show(product)
+  },
+  { immediate: true },
+)
+
 const attributeSelected = (attribute, option) => {
-  // Selected attribute update
   form.meta[attribute.slug] = option.name
 
-  // Selected attributes wise variant
-  const selectedOptions = form.meta
-
-  const variant = (product.value?.variants ?? []).find((variant) => {
-    return Object.entries(variant.options ?? {}).every(
-      ([key, value]) => selectedOptions[key] === value,
-    )
-  })
+  const variant = (product.value?.variants ?? []).find((variant) =>
+    Object.entries(variant.options ?? {}).every(([key, value]) => form.meta[key] === value),
+  )
 
   form.variant_id = variant?.id ?? null
 }
@@ -43,11 +65,7 @@ const selectedSerial = (serial, checked) => {
   const exists = form.meta.serials.some((item) => item.id === serial.id)
 
   if (checked) {
-    if (exists) return
-
-    if (form.meta.serials.length >= form.quantity) {
-      return
-    }
+    if (exists || form.meta.serials.length >= form.quantity) return
 
     form.meta.serials.push({
       id: serial.id,
@@ -59,26 +77,15 @@ const selectedSerial = (serial, checked) => {
 }
 
 const update = async () => {
-  await cartStore.update(props.item.id, form)
+  if (cartStore.loading) return
+
+  await cartStore.update(props.item.id, {
+    quantity: form.quantity,
+    variant_id: form.variant_id,
+    meta: form.meta,
+  })
+  await cartStore.getCart()
 }
-
-const loadProduct = async () => {
-  await productStore.show(props.item?.product?.id)
-}
-onMounted(async () => {
-  await loadProduct()
-
-  const cartItem = cartStore.cart?.items?.find((item) => item.id === props.item?.id)
-
-  if (cartItem) {
-    form.quantity = cartItem.quantity
-    form.variant_id = cartItem.variant_id
-    form.meta = {
-      ...cartItem.meta,
-      serials: cartItem.meta?.serials ?? [],
-    }
-  }
-})
 </script>
 
 <template>
@@ -139,7 +146,7 @@ onMounted(async () => {
                 type="button"
                 @click="attributeSelected(attribute, option)"
                 :class="[
-                  'rounded-md border px-2 py-1.5 text-sm transition',
+                  'rounded border px-2 py-1.5 text-sm transition',
                   form.meta[attribute.slug] === option.name
                     ? 'border-primary-500 bg-primary-50 text-primary-700'
                     : 'border-gray-200 hover:border-gray-400',

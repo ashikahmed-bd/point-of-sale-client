@@ -24,7 +24,7 @@ onMounted(async () => {
 
 <template>
   <Default>
-    <main class="space-y-4">
+    <main class="space-y-4 p-4">
       <!-- Header -->
       <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
