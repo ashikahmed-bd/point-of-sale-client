@@ -7,6 +7,7 @@ import { useSupplierStore } from '@/stores/supplier'
 import { useStoreStore } from '@/stores/store'
 import { usePurchaseStore } from '@/stores/purchase'
 
+const toast = useToast()
 const productStore = useProductStore()
 const supplierStore = useSupplierStore()
 const storeStore = useStoreStore()
@@ -56,7 +57,18 @@ const submit = async () => {
     paid: purchaseStore.paid,
     items: purchaseStore.items,
   }
-  await purchaseStore.store(payload)
+  try {
+    const response = await purchaseStore.store(payload)
+    toast.add({
+      title: response.data?.message,
+      color: 'success',
+    })
+  } catch (error) {
+    toast.add({
+      title: error.data?.message,
+      color: 'error',
+    })
+  }
 }
 
 const selectedOptions = ref({})
@@ -284,8 +296,9 @@ onMounted(async () => {
                       </button>
                     </td>
                   </tr>
+
                   <!-- attributes -->
-                  <tr v-if="product?.attributes?.length">
+                  <tr v-if="productStore?.product?.attributes?.length">
                     <td colspan="6" class="bg-slate-100 p-4">
                       <div class="space-y-2.5">
                         <div
@@ -327,13 +340,6 @@ onMounted(async () => {
                           type="button"
                           @click="
                             () => {
-                              console.log('Input values:', {
-                                quantity: product.quantity,
-                                unit_cost: product.unit_cost,
-                                discount: product.discount,
-                                tax: product.tax,
-                              })
-
                               purchaseStore.addItem({
                                 ...product,
                                 variant_id: selectedVariant?.id ?? '',
@@ -398,7 +404,15 @@ onMounted(async () => {
                   <template v-for="(item, index) in purchaseStore?.items" :key="item.id">
                     <tr>
                       <td>{{ index + 1 }}</td>
-                      <td>{{ item.name }}</td>
+                      <td>
+                        <h3 class="font-semibold">{{ item.name }}</h3>
+                        <span
+                          v-for="(name, key) in item.meta"
+                          :key="key"
+                          class="mr-2 inline-flex text-sm"
+                          >{{ key }}: {{ name }}</span
+                        >
+                      </td>
                       <td>{{ item.sku }}</td>
                       <td>{{ item.quantity }}</td>
                       <td>{{ $currency(Number(item.base_price)) }}</td>
@@ -475,43 +489,73 @@ onMounted(async () => {
                                     <tbody>
                                       <tr
                                         v-for="(serial, index) in item.serials"
-                                        :key="serial.id"
+                                        :key="serial.id ?? index"
                                         class="border-t border-gray-100 transition-colors hover:bg-gray-50/70"
                                       >
+                                        <!-- SL -->
                                         <td class="px-3 py-2 text-xs text-body">
                                           {{ index + 1 }}
                                         </td>
 
-                                        <td class="px-3 py-2 text-xs font-medium text-title">
-                                          {{ serial.serial_number || '-' }}
-                                        </td>
-
-                                        <td class="px-3 py-2 text-xs text-body">
-                                          {{ serial.imei || '-' }}
-                                        </td>
-
-                                        <td class="px-3 py-2 text-xs text-body">
-                                          {{ serial.barcode || '-' }}
-                                        </td>
-
+                                        <!-- Serial Number -->
                                         <td class="px-3 py-2">
-                                          <span
-                                            class="inline-flex rounded px-2 py-1 text-xs"
-                                            :class="{
-                                              'bg-green-50 text-green-700':
-                                                serial.status === 'in_stock',
-                                              'bg-yellow-50 text-yellow-700':
-                                                serial.status === 'reserved',
-                                              'bg-blue-50 text-blue-700': serial.status === 'sold',
-                                              'bg-gray-100 text-gray-600': !serial.status,
-                                            }"
-                                          >
-                                            {{ serial.status?.replaceAll('_', ' ') || 'Pending' }}
-                                          </span>
+                                          <input
+                                            v-model="serial.serial_number"
+                                            type="text"
+                                            placeholder="Enter serial number"
+                                            required
+                                            class="w-full min-w-36 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs text-title outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10"
+                                          />
                                         </td>
 
-                                        <td class="px-3 py-2 text-xs text-body">
-                                          {{ serial.note || '-' }}
+                                        <!-- IMEI -->
+                                        <td class="px-3 py-2">
+                                          <input
+                                            v-model="serial.imei"
+                                            type="text"
+                                            placeholder="Enter IMEI"
+                                            class="w-full min-w-32 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs text-title outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10"
+                                          />
+                                        </td>
+
+                                        <!-- Status -->
+                                        <td class="px-3 py-2">
+                                          <select
+                                            v-model="serial.status"
+                                            class="w-full min-w-32 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs text-title outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10"
+                                          >
+                                            <option value="in_stock">In Stock</option>
+                                            <option value="reserved">Reserved</option>
+                                            <option value="sold">Sold</option>
+                                            <option value="returned_inspection">
+                                              Returned Inspection
+                                            </option>
+                                            <option value="defective">Defective</option>
+                                            <option value="sent_for_repair">Sent for Repair</option>
+                                            <option value="lost">Lost</option>
+                                          </select>
+                                        </td>
+
+                                        <!-- Condition -->
+                                        <td class="px-3 py-2">
+                                          <select
+                                            v-model="serial.condition"
+                                            class="w-full min-w-28 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs text-title outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10"
+                                          >
+                                            <option value="new">New</option>
+                                            <option value="used">Used</option>
+                                            <option value="refurbished">Refurbished</option>
+                                          </select>
+                                        </td>
+
+                                        <!-- Note -->
+                                        <td class="px-3 py-2">
+                                          <input
+                                            v-model="serial.notes"
+                                            type="text"
+                                            placeholder="Add note"
+                                            class="w-full min-w-32 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs text-title outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10"
+                                          />
                                         </td>
                                       </tr>
 
@@ -555,7 +599,7 @@ onMounted(async () => {
           </section>
         </div>
 
-        <aside class="space-y-5">
+        <aside class="sticky top-20 space-y-5">
           <section class="rounded-2xl bg-white p-4">
             <div class="flex items-center justify-between gap-4 py-2 border-b border-border">
               <h2 class="font-bold text-title">Purchase Summary</h2>

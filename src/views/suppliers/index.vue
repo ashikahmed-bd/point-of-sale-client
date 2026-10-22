@@ -1,155 +1,31 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import Default from '@/layouts/Default.vue'
+import { useSupplierStore } from '@/stores/supplier'
+import { storeToRefs } from 'pinia'
 
-const search = ref('')
-const status = ref('all')
-const currentPage = ref(1)
-const perPage = 5
+const supplierStore = useSupplierStore()
 
-const suppliers = ref([
-  {
-    id: '01J9SUPPLIER001',
-    name: 'Abdul Rahman',
-    company_name: 'Rahman Traders',
-    phone: '01712345678',
-    email: 'rahman@example.com',
-    city: 'Dhaka',
-    state: 'Dhaka',
-    opening_balance: 15000,
-    credit_limit: 100000,
-    is_active: true,
-  },
-  {
-    id: '01J9SUPPLIER002',
-    name: 'Karim Uddin',
-    company_name: 'Dhaka Wholesale',
-    phone: '01812345678',
-    email: 'karim@example.com',
-    city: 'Chattogram',
-    state: 'Chattogram',
-    opening_balance: 25000,
-    credit_limit: 150000,
-    is_active: true,
-  },
-  {
-    id: '01J9SUPPLIER003',
-    name: 'Mohammad Hasan',
-    company_name: 'City Distributors',
-    phone: '01912345678',
-    email: 'hasan@example.com',
-    city: 'Sylhet',
-    state: 'Sylhet',
-    opening_balance: 0,
-    credit_limit: 50000,
-    is_active: true,
-  },
-  {
-    id: '01J9SUPPLIER004',
-    name: 'Abdur Karim',
-    company_name: 'Karim Enterprise',
-    phone: '01612345678',
-    email: 'karim.enterprise@example.com',
-    city: 'Rajshahi',
-    state: 'Rajshahi',
-    opening_balance: 12500,
-    credit_limit: 75000,
-    is_active: false,
-  },
-  {
-    id: '01J9SUPPLIER005',
-    name: 'Jamal Hossain',
-    company_name: 'New Market Supply',
-    phone: '01512345678',
-    email: 'jamal@example.com',
-    city: 'Khulna',
-    state: 'Khulna',
-    opening_balance: 8000,
-    credit_limit: null,
-    is_active: true,
-  },
-  {
-    id: '01J9SUPPLIER006',
-    name: 'Sabbir Ahmed',
-    company_name: 'Sabbir Corporation',
-    phone: '01312345678',
-    email: 'sabbir@example.com',
-    city: 'Dhaka',
-    state: 'Dhaka',
-    opening_balance: 5000,
-    credit_limit: 80000,
-    is_active: true,
-  },
-])
+const { suppliers } = storeToRefs(supplierStore)
 
-const filteredSuppliers = computed(() => {
-  const query = search.value.toLowerCase().trim()
-
-  return suppliers.value.filter((supplier) => {
-    const matchesSearch = [
-      supplier.name,
-      supplier.company_name,
-      supplier.phone,
-      supplier.email,
-      supplier.city,
-    ].some((value) => value?.toLowerCase().includes(query))
-
-    const matchesStatus =
-      status.value === 'all' ||
-      (status.value === 'active' && supplier.is_active) ||
-      (status.value === 'inactive' && !supplier.is_active)
-
-    return matchesSearch && matchesStatus
-  })
+const filters = reactive({
+  search: '',
+  status: '',
+  page: 1,
 })
 
-const totalPages = computed(() => Math.ceil(filteredSuppliers.value.length / perPage))
+const loadSuppliers = async () => {
+  await supplierStore.all(filters)
+}
 
-const paginatedSuppliers = computed(() => {
-  const start = (currentPage.value - 1) * perPage
-
-  return filteredSuppliers.value.slice(start, start + perPage)
+onMounted(() => {
+  loadSuppliers()
 })
-
-const totalOpeningBalance = computed(() =>
-  suppliers.value.reduce((sum, supplier) => sum + Number(supplier.opening_balance || 0), 0),
-)
-
-const activeSuppliers = computed(
-  () => suppliers.value.filter((supplier) => supplier.is_active).length,
-)
-
-const inactiveSuppliers = computed(
-  () => suppliers.value.filter((supplier) => !supplier.is_active).length,
-)
-
-const formatCurrency = (amount) =>
-  new Intl.NumberFormat('en-BD', {
-    style: 'currency',
-    currency: 'BDT',
-    minimumFractionDigits: 2,
-  })
-    .format(amount || 0)
-    .replace('BDT', '৳')
-
-const handleFilter = () => {
-  currentPage.value = 1
-}
-
-const resetFilters = () => {
-  search.value = ''
-  status.value = 'all'
-  currentPage.value = 1
-}
-
-const toggleStatus = (supplier) => {
-  supplier.is_active = !supplier.is_active
-}
 </script>
 
 <template>
   <Default>
-    <main class="space-y-4 p-4">
+    <main class="space-y-4">
       <div class="flex items-center justify-between gap-4">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-slate-900">Suppliers</h1>
@@ -168,9 +44,7 @@ const toggleStatus = (supplier) => {
         </RouterLink>
       </div>
 
-      <!-- Summary Cards -->
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <!-- Total Suppliers -->
         <div class="rounded-xl border border-slate-200 bg-white p-5">
           <div class="flex items-center justify-between">
             <p class="text-sm font-medium text-slate-500">Total Suppliers</p>
@@ -183,7 +57,7 @@ const toggleStatus = (supplier) => {
           </div>
 
           <h2 class="mt-4 text-2xl font-bold text-slate-900">
-            {{ suppliers.length }}
+            {{ suppliers.data?.length }}
           </h2>
 
           <p class="mt-2 text-xs text-slate-500">All registered suppliers</p>
@@ -201,9 +75,7 @@ const toggleStatus = (supplier) => {
             </div>
           </div>
 
-          <h2 class="mt-4 text-2xl font-bold text-slate-900">
-            {{ activeSuppliers }}
-          </h2>
+          <h2 class="mt-4 text-2xl font-bold text-slate-900">44</h2>
 
           <p class="mt-2 text-xs text-emerald-600">Currently active suppliers</p>
         </div>
@@ -220,9 +92,7 @@ const toggleStatus = (supplier) => {
             </div>
           </div>
 
-          <h2 class="mt-4 text-2xl font-bold text-slate-900">
-            {{ inactiveSuppliers }}
-          </h2>
+          <h2 class="mt-4 text-2xl font-bold text-slate-900">42</h2>
 
           <p class="mt-2 text-xs text-slate-500">Disabled supplier accounts</p>
         </div>
@@ -239,17 +109,13 @@ const toggleStatus = (supplier) => {
             </div>
           </div>
 
-          <h2 class="mt-4 text-2xl font-bold text-slate-900">
-            {{ formatCurrency(totalOpeningBalance) }}
-          </h2>
+          <h2 class="mt-4 text-2xl font-bold text-slate-900">4242</h2>
 
           <p class="mt-2 text-xs text-slate-500">Combined opening balances</p>
         </div>
       </div>
 
-      <!-- Supplier Table -->
-      <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <!-- Toolbar -->
+      <div class="overflow-hidden rounded-xl bg-white">
         <div
           class="flex flex-col gap-4 border-b border-slate-200 p-5 xl:flex-row xl:items-center xl:justify-between"
         >
@@ -267,18 +133,18 @@ const toggleStatus = (supplier) => {
               />
 
               <input
-                v-model="search"
+                v-model="filters.search"
                 type="text"
                 placeholder="Search supplier..."
                 class="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10 sm:w-64"
-                @input="handleFilter"
+                @input="loadSuppliers"
               />
             </div>
 
             <select
-              v-model="status"
+              v-model="filters.status"
               class="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-600 outline-none focus:border-primary"
-              @change="handleFilter"
+              @change="loadSuppliers"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -288,7 +154,6 @@ const toggleStatus = (supplier) => {
             <button
               type="button"
               class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-              @click="resetFilters"
             >
               <UIcon name="i-lucide-rotate-ccw" class="size-4" />
               Reset
@@ -298,61 +163,26 @@ const toggleStatus = (supplier) => {
 
         <!-- Table -->
         <div class="overflow-x-auto">
-          <table class="w-full text-left">
-            <thead class="bg-slate-50">
+          <table>
+            <thead>
               <tr>
-                <th
-                  class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  Supplier
-                </th>
-
-                <th
-                  class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  Contact
-                </th>
-
-                <th
-                  class="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  Location
-                </th>
-
-                <th
-                  class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  Opening Balance
-                </th>
-
-                <th
-                  class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  Credit Limit
-                </th>
-
-                <th
-                  class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  Status
-                </th>
-
-                <th
-                  class="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500"
-                >
-                  Actions
-                </th>
+                <th>Supplier</th>
+                <th>Contact</th>
+                <th>Location</th>
+                <th>Opening Balance</th>
+                <th>Credit Limit</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
 
-            <tbody class="divide-y divide-slate-100">
+            <tbody>
               <tr
-                v-for="supplier in paginatedSuppliers"
+                v-for="supplier in suppliers.data"
                 :key="supplier.id"
                 class="transition hover:bg-slate-50/70"
               >
-                <!-- Supplier -->
-                <td class="whitespace-nowrap px-5 py-4">
+                <td>
                   <div class="flex items-center gap-3">
                     <div
                       class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
@@ -372,8 +202,7 @@ const toggleStatus = (supplier) => {
                   </div>
                 </td>
 
-                <!-- Contact -->
-                <td class="whitespace-nowrap px-5 py-4">
+                <td>
                   <div class="space-y-1">
                     <div class="flex items-center gap-2 text-sm text-slate-700">
                       <UIcon name="i-lucide-phone" class="size-3.5 text-slate-400" />
@@ -390,8 +219,7 @@ const toggleStatus = (supplier) => {
                   </div>
                 </td>
 
-                <!-- Location -->
-                <td class="whitespace-nowrap px-5 py-4">
+                <td>
                   <div class="flex items-center gap-2 text-sm text-slate-600">
                     <UIcon name="i-lucide-map-pin" class="size-4 shrink-0 text-slate-400" />
 
@@ -404,26 +232,19 @@ const toggleStatus = (supplier) => {
                   </div>
                 </td>
 
-                <!-- Opening Balance -->
-                <td
-                  class="whitespace-nowrap px-5 py-4 text-right text-sm font-medium text-slate-800"
-                >
-                  {{ formatCurrency(supplier.opening_balance) }}
+                <td>
+                  {{ $currency(supplier.opening_balance) }}
                 </td>
 
-                <!-- Credit Limit -->
-                <td class="whitespace-nowrap px-5 py-4 text-right">
+                <td>
                   <span class="text-sm font-medium text-slate-700">
                     {{
-                      supplier.credit_limit != null
-                        ? formatCurrency(supplier.credit_limit)
-                        : 'No Limit'
+                      supplier.credit_limit != null ? $urrency(supplier.credit_limit) : 'No Limit'
                     }}
                   </span>
                 </td>
 
-                <!-- Status -->
-                <td class="whitespace-nowrap px-5 py-4 text-center">
+                <td>
                   <span
                     class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset"
                     :class="
@@ -441,8 +262,7 @@ const toggleStatus = (supplier) => {
                   </span>
                 </td>
 
-                <!-- Actions -->
-                <td class="whitespace-nowrap px-5 py-4">
+                <td>
                   <div class="flex items-center justify-center gap-1">
                     <button
                       type="button"
@@ -464,7 +284,6 @@ const toggleStatus = (supplier) => {
                       type="button"
                       :title="supplier.is_active ? 'Deactivate supplier' : 'Activate supplier'"
                       class="flex size-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                      @click="toggleStatus(supplier)"
                     >
                       <UIcon
                         :name="
@@ -478,7 +297,7 @@ const toggleStatus = (supplier) => {
               </tr>
 
               <!-- Empty State -->
-              <tr v-if="paginatedSuppliers.length === 0">
+              <tr v-if="suppliers.data?.length === 0">
                 <td colspan="7" class="px-5 py-16 text-center">
                   <div
                     class="mx-auto flex size-12 items-center justify-center rounded-full bg-slate-100"
@@ -493,62 +312,6 @@ const toggleStatus = (supplier) => {
               </tr>
             </tbody>
           </table>
-        </div>
-
-        <!-- Pagination -->
-        <div
-          class="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <p class="text-sm text-slate-500">
-            Showing
-            <span class="font-medium text-slate-800">
-              {{ filteredSuppliers.length ? (currentPage - 1) * perPage + 1 : 0 }}
-            </span>
-            to
-            <span class="font-medium text-slate-800">
-              {{ Math.min(currentPage * perPage, filteredSuppliers.length) }}
-            </span>
-            of
-            <span class="font-medium text-slate-800">
-              {{ filteredSuppliers.length }}
-            </span>
-            suppliers
-          </p>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              :disabled="currentPage === 1"
-              class="flex size-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              @click="currentPage--"
-            >
-              <UIcon name="i-lucide-chevron-left" class="size-4" />
-            </button>
-
-            <button
-              v-for="page in totalPages"
-              :key="page"
-              type="button"
-              class="flex size-9 items-center justify-center rounded-lg border text-sm font-medium transition"
-              :class="
-                currentPage === page
-                  ? 'border-primary bg-primary text-white'
-                  : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-              "
-              @click="currentPage = page"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              type="button"
-              :disabled="currentPage >= totalPages || totalPages === 0"
-              class="flex size-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              @click="currentPage++"
-            >
-              <UIcon name="i-lucide-chevron-right" class="size-4" />
-            </button>
-          </div>
         </div>
       </div>
     </main>

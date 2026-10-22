@@ -88,18 +88,20 @@ export const usePurchaseStore = defineStore('purchase', {
     },
 
     async addSerial(product) {
-      const item = this.items.find((item) => item.id === product)
+      const item = this.items.find((item) => item.id === product.id)
 
       if (!item) return
 
-      item.serials.push({
-        serial_number: '',
-        imei: '',
-        status: 'in_stock',
-        purchase_date: new Date().toISOString().slice(0, 10),
-        condition: 'new',
-        notes: '',
-      })
+      while (item.serials.length < Number(item.quantity)) {
+        item.serials.push({
+          serial_number: '',
+          imei: '',
+          status: 'in_stock',
+          purchase_date: new Date().toISOString().slice(0, 10),
+          condition: 'new',
+          notes: '',
+        })
+      }
     },
 
     async selectedVariant(product, variant) {
@@ -126,9 +128,9 @@ export const usePurchaseStore = defineStore('purchase', {
       this.loading = true
       try {
         const response = await apiClient.post('api/purchases', payload)
-        return response.data
+        return response
       } catch (error) {
-        throw error
+        throw error.response ?? error
       } finally {
         this.loading = false
       }

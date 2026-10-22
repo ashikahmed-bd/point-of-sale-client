@@ -11,10 +11,12 @@ export const useSupplierStore = defineStore('supplier', {
   getters: {},
 
   actions: {
-    async all() {
+    async all(filters = {}) {
       this.loading = true
       try {
-        const response = await apiClient.get('/api/suppliers')
+        const response = await apiClient.get('/api/suppliers', {
+          params: filters,
+        })
         this.suppliers = response.data
         return response.data
       } catch (error) {

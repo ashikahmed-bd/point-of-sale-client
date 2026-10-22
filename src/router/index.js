@@ -47,7 +47,11 @@ const routes = [
     component: () => import('../views/sales/view.vue'),
   },
 
-  // 04. Purchases
+  /*
+  |--------------------------------------------------------------------------
+  | Purchases
+  |--------------------------------------------------------------------------
+  */
   {
     path: '/purchases',
     name: 'purchases',
@@ -58,20 +62,33 @@ const routes = [
     name: 'purchases.create',
     component: () => import('../views/purchases/create.vue'),
   },
-  {
-    path: '/purchases/returns',
-    name: 'purchases.returns',
-    component: () => import('../views/purchases/returns.vue'),
-  },
-  {
-    path: '/purchases/:id/edit',
-    name: 'purchases.edit',
-    component: () => import('../views/purchases/edit.vue'),
-  },
+
   {
     path: '/purchases/:id',
-    name: 'purchases.view',
-    component: () => import('../views/purchases/view.vue'),
+    name: 'purchases.show',
+    component: () => import('../views/purchases/show.vue'),
+  },
+
+  // Purchases returns
+  {
+    path: '/purchases/returns',
+    name: 'purchase-returns',
+    component: () => import('@/views/purchases/returns/index.vue'),
+  },
+  {
+    path: '/purchases/returns/create',
+    name: 'purchase-returns.create',
+    component: () => import('@/views/purchases/returns/create.vue'),
+  },
+  {
+    path: '/purchases/returns/:id',
+    name: 'purchase-returns.show',
+    component: () => import('@/views/purchases/returns/show.vue'),
+  },
+  {
+    path: '/purchases/returns/:id/edit',
+    name: 'purchase-returns.edit',
+    component: () => import('@/views/purchases/returns/edit.vue'),
   },
 
   // 05. Products

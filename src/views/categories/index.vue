@@ -1,7 +1,6 @@
 <script setup>
 import Default from '@/layouts/Default.vue'
 import { useCategoryStore } from '@/stores/category'
-import { id } from '@nuxt/ui/runtime/locale/index.js'
 import { storeToRefs } from 'pinia'
 import { onMounted, reactive } from 'vue'
 
@@ -46,7 +45,7 @@ onMounted(() => {
 
 <template>
   <Default>
-    <main class="p-4 space-y-4">
+    <main class="space-y-4">
       <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="text-lg font-bold text-body">Categories</h1>

@@ -43,7 +43,7 @@ onMounted(() => {
 
 <template>
   <Default>
-    <main class="p-4 space-y-4">
+    <main class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-lg font-bold text-body">Brands</h1>
