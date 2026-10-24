@@ -11,6 +11,13 @@ const loadCustomers = async () => {
   await customerStore.all()
 }
 
+const deleteCustomer = async (customer) => {
+  if (confirm('Are you sure you want to delete this customer?')) {
+    await customerStore.delete(customer.id)
+  }
+  await loadCustomers()
+}
+
 onMounted(() => {
   loadCustomers()
 })
@@ -18,7 +25,7 @@ onMounted(() => {
 
 <template>
   <Default>
-    <main class="space-y-4 p-4">
+    <main class="space-y-4">
       <div class="flex items-center justify-between gap-4">
         <div>
           <h1 class="text-lg font-bold text-body">Customers</h1>
@@ -28,7 +35,7 @@ onMounted(() => {
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-body hover:bg-slate-50"
+            class="flex items-center gap-2 rounded border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-body hover:bg-slate-50"
           >
             <UIcon name="i-lucide-download" class="size-4" />
             Export
@@ -37,10 +44,10 @@ onMounted(() => {
           <button
             type="button"
             @click="$router.push({ name: 'customers.create' })"
-            class="flex items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-white hover:bg-primary/90"
+            class="flex items-center gap-2 rounded bg-primary px-3.5 py-2 text-sm font-semibold text-white hover:bg-primary/90"
           >
             <UIcon name="i-lucide-plus" class="size-4" />
-            Add Customer
+            Create
           </button>
         </div>
       </div>
@@ -56,14 +63,14 @@ onMounted(() => {
             <input
               type="search"
               placeholder="Search customers..."
-              class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-body outline-none placeholder:text-body/40 focus:border-primary"
+              class="w-full rounded border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-body outline-none placeholder:text-body/40 focus:border-primary"
             />
           </div>
 
-          <div class="text-sm text-body/50">12 customers</div>
+          <div class="text-sm text-body">12 customers</div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto px-2.5">
           <table>
             <thead>
               <tr>
@@ -152,19 +159,30 @@ onMounted(() => {
                       type="button"
                       title="View"
                       class="rounded-md p-1.5 text-body/50 hover:bg-slate-100 hover:text-body"
-                      @click="viewCustomer(customer)"
+                      @click="
+                        $router.push({
+                          name: 'customers.show',
+                          params: {
+                            id: customer.id,
+                          },
+                        })
+                      "
                     >
                       <UIcon name="i-lucide-eye" class="size-4" />
                     </button>
 
-                    <button
-                      type="button"
+                    <RouterLink
+                      :to="{
+                        name: 'customers.edit',
+                        params: {
+                          id: customer.id,
+                        },
+                      }"
                       title="Edit"
                       class="rounded-md p-1.5 text-body/50 hover:bg-primary/10 hover:text-primary"
-                      @click="editCustomer(customer)"
                     >
                       <UIcon name="i-lucide-pencil" class="size-4" />
-                    </button>
+                    </RouterLink>
 
                     <button
                       type="button"

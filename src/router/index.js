@@ -167,6 +167,18 @@ const routes = [
     component: () => import('../views/customers/create.vue'),
   },
 
+  {
+    path: '/customers/:id/edit',
+    name: 'customers.edit',
+    component: () => import('../views/customers/edit.vue'),
+  },
+
+  {
+    path: '/customers/:id',
+    name: 'customers.show',
+    component: () => import('../views/customers/show.vue'),
+  },
+
   // 08. Suppliers
   {
     path: '/suppliers',

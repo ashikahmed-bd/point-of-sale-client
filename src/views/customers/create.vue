@@ -2,6 +2,12 @@
 import { reactive } from 'vue'
 import Default from '@/layouts/Default.vue'
 import BaseInput from '@/components/BaseInput.vue'
+import { useCustomerStore } from '@/stores/customer'
+import { useRouter } from 'vue-router'
+
+const toast = useToast()
+const router = useRouter()
+const customerStore = useCustomerStore()
 
 const form = reactive({
   name: '',
@@ -17,19 +23,35 @@ const form = reactive({
   is_active: true,
 })
 
-const submit = () => {
-  console.log({ ...form })
+const submit = async () => {
+  try {
+    const response = await customerStore.store(form)
+    console.log(response)
+    toast.add({
+      title: response.data?.message,
+      color: 'success',
+    })
+    await router.push({
+      name: 'customers',
+    })
+  } catch (error) {
+    if (error.data) {
+      toast.add({
+        title: error.data?.message,
+        color: 'error',
+      })
+    }
+  }
 }
 </script>
 
 <template>
   <Default>
-    <main class="space-y-4 p-4">
-      <!-- Header -->
+    <main class="space-y-4">
       <div class="flex items-center justify-between gap-3">
         <div>
-          <h1 class="text-xl font-semibold text-slate-800">Create Customer</h1>
-          <p class="mt-1 text-sm text-slate-500">Add a new customer to your business.</p>
+          <h1 class="text-xl font-semibold text-title">Create Customer</h1>
+          <p class="mt-1 text-sm text-body">Add a new customer to your business.</p>
         </div>
 
         <button
@@ -200,10 +222,15 @@ const submit = () => {
 
           <button
             type="submit"
-            class="inline-flex items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+            :disabled="customerStore.loading"
+            class="inline-flex items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <UIcon name="i-lucide-save" class="size-4" />
-            Create Customer
+            <UIcon
+              :name="customerStore.loading ? 'i-lucide-loader-circle' : 'i-lucide-save'"
+              class="size-4"
+              :class="{ 'animate-spin': customerStore.loading }"
+            />
+            {{ customerStore.loading ? 'Creating...' : 'Create' }}
           </button>
         </div>
       </form>
